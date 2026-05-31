@@ -1,0 +1,1883 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Base DPC — Contraloría de Bogotá</title>
+<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+:root{
+  --sidebar-w:248px;--header-h:60px;
+  --bg:#f1f5f9;--surface:#fff;--border:#e2e8f0;--border2:#cbd5e1;
+  --sidebar-bg:#1e293b;--sidebar-hover:#2d3f55;--sidebar-active:#3b82f6;
+  --sidebar-text:#94a3b8;--sidebar-active-text:#fff;
+  --text:#0f172a;--text2:#475569;--text3:#94a3b8;
+  --accent:#3b82f6;--accent-light:#eff6ff;
+  --danger:#ef4444;--danger-light:#fef2f2;
+  --success:#22c55e;--warn:#f59e0b;--gold:#f59e0b;
+  --tag-color:#7c3aed;--tag-bg:#f5f3ff;--tag-border:#c4b5fd;
+  --radius:8px;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+  --shadow-md:0 4px 6px -1px rgba(0,0,0,.08);
+  --shadow-lg:0 10px 15px -3px rgba(0,0,0,.1);
+}
+[data-theme="dark"]{
+  --bg:#0f172a;--surface:#1e293b;--border:#2d3f55;--border2:#3d5068;
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;
+  --accent-light:#1e3a5f;--danger-light:#2d1515;
+  --tag-bg:#2e1065;--tag-border:#7c3aed;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter','Segoe UI',system-ui,sans-serif;font-size:14px;background:var(--bg);color:var(--text);min-height:100vh;transition:background .2s,color .2s}
+
+/* Layout */
+.layout{display:grid;grid-template-columns:var(--sidebar-w) 1fr;grid-template-rows:var(--header-h) 1fr;height:100vh;overflow:hidden}
+
+/* Sidebar */
+.sidebar{grid-row:1/-1;background:var(--sidebar-bg);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-logo{height:var(--header-h);display:flex;align-items:center;gap:10px;padding:0 18px;border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0}
+.logo-icon{width:34px;height:34px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.logo-text{color:#f8fafc;font-weight:700;font-size:14px;line-height:1.2}
+.logo-sub{color:var(--sidebar-text);font-size:10px}
+.sidebar-nav{flex:1;overflow-y:auto;padding:8px 0}
+.nav-label{font-size:10px;font-weight:600;color:#475569;text-transform:uppercase;letter-spacing:.08em;padding:14px 18px 5px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 18px;cursor:pointer;color:var(--sidebar-text);font-size:13px;font-weight:500;transition:all .15s;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--sidebar-hover);color:#e2e8f0}
+.nav-item.active{background:var(--sidebar-active);color:var(--sidebar-active-text)}
+.nav-icon{width:16px;text-align:center;flex-shrink:0;font-size:13px}
+.nav-count{margin-left:auto;background:rgba(255,255,255,.12);color:#cbd5e1;font-size:10px;padding:1px 6px;border-radius:20px}
+.nav-item.active .nav-count{background:rgba(255,255,255,.25);color:#fff}
+.nav-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sidebar-footer{padding:12px 18px;border-top:1px solid rgba(255,255,255,.07);flex-shrink:0;display:flex;flex-direction:column;gap:2px}
+.sidebar-footer button{display:flex;align-items:center;gap:8px;color:var(--sidebar-text);font-size:12px;background:none;border:none;cursor:pointer;padding:6px 0;width:100%;font-family:inherit;transition:color .15s}
+.sidebar-footer button:hover{color:#e2e8f0}
+
+/* Header */
+header{background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;box-shadow:var(--shadow);z-index:10}
+.search-box{flex:1;max-width:400px;position:relative}
+.search-box input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px 8px 32px;color:var(--text);font-size:13px;outline:none;font-family:inherit;transition:border-color .2s,box-shadow .2s}
+.search-box input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.search-box .si{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none;font-size:13px}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.theme-btn{background:none;border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer;color:var(--text2);font-size:15px;transition:all .15s;line-height:1}
+.theme-btn:hover{background:var(--bg)}
+
+/* Main */
+main{overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px}
+.stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.stat-val{font-size:20px;font-weight:700;line-height:1}
+.stat-lbl{font-size:11px;color:var(--text2);margin-top:2px}
+
+/* Toolbar */
+.toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.toolbar-title{font-size:17px;font-weight:700;flex:1}
+.tag-filters{display:flex;gap:5px;flex-wrap:wrap}
+.tag-chip{display:inline-flex;align-items:center;gap:3px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:3px 9px;font-size:11px;font-weight:500;cursor:pointer;color:var(--text2);transition:all .15s}
+.tag-chip:hover{border-color:var(--accent);color:var(--accent)}
+.tag-chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* Cards */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:13px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;flex-direction:column;gap:9px;box-shadow:var(--shadow);cursor:pointer;transition:border-color .2s,box-shadow .2s,transform .15s}
+.card:hover{border-color:var(--accent);box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.card-head{display:flex;align-items:flex-start;gap:8px}
+.card-title{font-weight:600;font-size:13px;flex:1;line-height:1.4}
+.card-actions{display:flex;align-items:center;gap:2px;flex-shrink:0}
+.fav-btn{background:none;border:none;cursor:pointer;font-size:15px;padding:3px;line-height:1;opacity:.35;transition:opacity .15s,transform .15s}
+.fav-btn:hover,.fav-btn.active{opacity:1}
+.card-menu{position:relative}
+.card-menu-btn{background:none;border:none;color:var(--text3);cursor:pointer;width:24px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .15s}
+.card-menu-btn:hover{background:var(--bg);color:var(--text2)}
+.dropdown{display:none;position:absolute;right:0;top:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;min-width:148px;z-index:200;box-shadow:var(--shadow-lg);overflow:hidden}
+.dropdown.open{display:block}
+.dropdown button{display:flex;align-items:center;gap:7px;width:100%;padding:9px 12px;background:none;border:none;color:var(--text);font-size:12px;cursor:pointer;text-align:left;font-family:inherit;transition:background .1s}
+.dropdown button:hover{background:var(--bg)}
+.dropdown button.danger{color:var(--danger)}
+.dd-sep{height:1px;background:var(--border);margin:3px 0}
+.card-preview{font-size:12px;color:var(--text2);line-height:1.5;max-height:48px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+.card-footer{display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding-top:5px;border-top:1px solid var(--border)}
+.cat-badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px}
+.entry-tag{font-size:10px;background:var(--bg);border:1px solid var(--border);padding:2px 6px;border-radius:20px;color:var(--text2)}
+.card-date{margin-left:auto;font-size:10px;color:var(--text3)}
+.usage-badge{font-size:10px;color:var(--text3)}
+.empty-state{grid-column:1/-1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:50px 24px;text-align:center}
+.empty-icon{font-size:42px;margin-bottom:10px}
+.empty-title{font-size:15px;font-weight:600;color:var(--text2)}
+.empty-sub{font-size:12px;color:var(--text3);margin-top:4px}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:var(--radius);border:none;cursor:pointer;font-size:12px;font-weight:500;transition:all .15s;font-family:inherit;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:#2563eb}
+.btn-outline{background:var(--surface);color:var(--text2);border:1px solid var(--border)}.btn-outline:hover{background:var(--bg)}
+.btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{background:#dc2626}
+.btn-success{background:var(--success);color:#fff}.btn-success:hover{background:#16a34a}
+.btn-warn{background:var(--warn);color:#fff}.btn-warn:hover{background:#d97706}
+.btn-purple{background:var(--tag-color);color:#fff}.btn-purple:hover{background:#6d28d9}
+.btn-ghost{background:transparent;color:var(--text2);border:none}.btn-ghost:hover{background:var(--bg)}
+.btn-sm{padding:5px 10px;font-size:11px}
+.btn-xs{padding:3px 8px;font-size:10px}
+
+/* ── TAG pill (in content/editor) ── */
+.etiqueta{display:inline-block;background:var(--tag-bg);color:var(--tag-color);border:1px solid var(--tag-border);border-radius:4px;padding:1px 6px;font-size:11px;font-weight:700;font-family:monospace;cursor:default;user-select:none}
+.etiqueta-filled{background:#d1fae5;color:#065f46;border-color:#6ee7b7}
+
+/* Modal */
+.overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:300;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(3px)}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:100%;max-width:720px;max-height:92vh;overflow-y:auto;box-shadow:0 25px 50px rgba(0,0,0,.15)}
+.modal-header{display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border);gap:10px;position:sticky;top:0;background:var(--surface);z-index:5}
+.modal-header h2{font-size:15px;font-weight:700;flex:1}
+.modal-body{padding:18px 20px;display:flex;flex-direction:column;gap:12px}
+.modal-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px;position:sticky;bottom:0;background:var(--surface)}
+.form-group label{display:block;font-size:10px;font-weight:600;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+.form-group input,.form-group textarea,.form-group select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:8px 11px;color:var(--text);font-size:13px;outline:none;font-family:inherit;transition:border-color .2s,box-shadow .2s}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.form-group textarea{resize:vertical;min-height:80px;line-height:1.6}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tags-wrap{display:flex;flex-wrap:wrap;gap:5px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:7px;min-height:38px;cursor:text;transition:border-color .2s}
+.tags-wrap:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+.tag-pill{display:inline-flex;align-items:center;gap:3px;background:var(--accent);color:#fff;border-radius:20px;padding:2px 7px;font-size:11px;font-weight:500}
+.tag-pill button{background:none;border:none;color:rgba(255,255,255,.8);cursor:pointer;font-size:13px;line-height:1;padding:0 0 0 2px}
+.tags-wrap input{background:none;border:none;outline:none;color:var(--text);font-size:13px;flex:1;min-width:80px;font-family:inherit}
+
+/* Quill */
+.ql-toolbar{border-color:var(--border)!important;border-radius:var(--radius) var(--radius) 0 0;background:var(--bg)}
+.ql-container{border-color:var(--border)!important;border-radius:0 0 var(--radius) var(--radius);font-family:'Arial',sans-serif;font-size:12pt}
+.ql-editor{min-height:130px;color:var(--text);background:var(--surface);line-height:1.6}
+[data-theme="dark"] .ql-toolbar .ql-stroke{stroke:#94a3b8}
+[data-theme="dark"] .ql-toolbar .ql-fill{fill:#94a3b8}
+[data-theme="dark"] .ql-toolbar .ql-picker{color:#94a3b8}
+/* Tag insert button in toolbar */
+.ql-insertTag::after{content:"{{}}";font-size:12px;font-weight:700;color:var(--tag-color, #7c3aed)}
+
+/* Detail */
+.detail-modal{max-width:840px}
+.detail-content{font-family:'Arial',sans-serif;font-size:12pt;line-height:1.7;color:var(--text)}
+.detail-content p{margin-bottom:8px}
+.detail-content table{border-collapse:collapse;width:100%;margin:10px 0}
+.detail-content td,.detail-content th{border:1px solid #cbd5e1;padding:7px 11px;font-size:12pt}
+.detail-content a{color:var(--accent)}
+.detail-content ol,.detail-content ul{padding-left:22px;margin-bottom:8px}
+.detail-content li{margin-bottom:3px}
+.detail-content hr{border:none;border-top:1px solid var(--border);margin:10px 0}
+.detail-actions{display:flex;gap:7px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--border)}
+
+/* ── Fill Variables modal ── */
+.var-modal{max-width:680px}
+.cargo-selector{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:4px}
+.cargo-selector-title{font-size:11px;font-weight:700;color:var(--tag-color);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.cargo-preview{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.cargo-chip{background:var(--tag-bg);border:1px solid var(--tag-border);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;color:var(--tag-color);font-family:monospace}
+.cargo-chip span{font-size:10px;font-weight:400;color:var(--text3);display:block;margin-bottom:1px}
+.var-fields{display:flex;flex-direction:column;gap:8px}
+.var-field{display:flex;flex-direction:column;gap:4px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px}
+.var-field label{font-size:10px;font-weight:700;color:var(--tag-color);letter-spacing:.04em;display:flex;align-items:center;gap:6px}
+.var-field label code{background:var(--tag-bg);border:1px solid var(--tag-border);border-radius:4px;padding:1px 5px;font-size:10px}
+.var-field input,.var-field select{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text);font-size:13px;outline:none;font-family:inherit;transition:border-color .2s;width:100%}
+.var-field input:focus,.var-field select:focus{border-color:var(--tag-color);box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+.preview-box{background:var(--bg);border:2px solid var(--tag-border);border-radius:var(--radius);padding:14px;max-height:220px;overflow-y:auto;font-family:'Arial',sans-serif;font-size:11pt;line-height:1.6}
+.preview-box .etiqueta{animation:pulse .5s ease}
+@keyframes pulse{0%{opacity:1}50%{opacity:.4}100%{opacity:1}}
+.filled-val{background:#d1fae5;color:#065f46;border-radius:3px;padding:0 3px;font-weight:600}
+
+/* ── Tag Manager modal ── */
+.tag-manager-modal{max-width:700px}
+.tag-grid{display:flex;flex-direction:column;gap:4px;margin-bottom:4px}
+.tag-row{display:flex;flex-direction:column;border-radius:var(--radius);overflow:hidden}
+.tag-row-view{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;transition:background .15s}
+.tag-row-view:hover{background:var(--border)}
+.tag-item-name{font-family:monospace;font-size:11px;font-weight:700;color:var(--tag-color);background:var(--tag-bg);border:1px solid var(--tag-border);border-radius:4px;padding:2px 7px;white-space:nowrap;flex-shrink:0;min-width:130px}
+.tag-row-label{font-size:12px;color:var(--text2);flex:1;min-width:0;overflow:hidden;line-height:1.4}
+.tag-row-value{display:block;margin-top:1px}
+.tag-row-type{font-size:10px;color:var(--text3);white-space:nowrap;display:flex;align-items:center;gap:4px}
+.tag-row-actions{display:flex;gap:4px;flex-shrink:0;margin-left:auto}
+.tag-item-name{font-family:monospace;font-size:11px;font-weight:700;color:var(--tag-color);background:var(--tag-bg);border:1px solid var(--tag-border);border-radius:4px;padding:2px 7px;display:inline-block}
+.builtin-badge{font-size:9px;background:#e0e7ff;color:#4338ca;border-radius:4px;padding:1px 5px;font-weight:600}
+.new-tag-form{background:var(--bg);border:2px dashed var(--border2);border-radius:var(--radius);padding:14px;display:flex;flex-direction:column;gap:10px;margin-top:8px}
+.new-tag-form-title{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:2px}
+
+/* History */
+.version-item{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:11px 13px;display:flex;flex-direction:column;gap:5px}
+.version-meta{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text3)}
+.version-badge{background:var(--accent-light);color:var(--accent);border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700}
+.version-preview{font-size:11px;color:var(--text2);line-height:1.5;max-height:50px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+
+/* Toast */
+.copy-toast{position:fixed;bottom:22px;right:22px;background:#1e293b;color:#fff;padding:9px 16px;border-radius:8px;font-size:13px;z-index:999;opacity:0;transform:translateY(6px);transition:all .25s;pointer-events:none;max-width:340px}
+.copy-toast.show{opacity:1;transform:translateY(0)}
+
+/* Confirm */
+.confirm-modal{max-width:360px}
+
+/* ── Dark mode: override ALL SharePoint inline colors (universal) ── */
+[data-theme="dark"] .detail-content *:not(a):not(.etiqueta):not(.etiqueta-filled) {
+  color:#e2e8f0!important;
+  background-color:transparent!important;
+  background:transparent!important;
+  border-color:#2d3f55!important;
+}
+[data-theme="dark"] .detail-content { color:#e2e8f0!important; background:transparent!important; }
+[data-theme="dark"] .detail-content a { color:#60a5fa!important; background:transparent!important; }
+[data-theme="dark"] .detail-content td,
+[data-theme="dark"] .detail-content th { background:#1a2740!important; border-color:#2d3f55!important; color:#e2e8f0!important; }
+[data-theme="dark"] .detail-content hr { border-color:#2d3f55!important; }
+[data-theme="dark"] .preview-box *:not(.etiqueta):not(.etiqueta-filled):not(a) { color:#e2e8f0!important; background:transparent!important; }
+
+/* ── Dark mode: favoritos ── */
+[data-theme="dark"] .fav-btn{opacity:.65;color:#94a3b8}
+[data-theme="dark"] .fav-btn:hover{opacity:1;color:#e2e8f0}
+[data-theme="dark"] .fav-btn.active{opacity:1;color:#f59e0b!important}
+[data-theme="dark"] #dFavBtn{color:#94a3b8}
+
+/* ── Dark mode: superficies ── */
+[data-theme="dark"] .modal{background:#1e293b;border-color:#2d3f55}
+[data-theme="dark"] .modal-header,[data-theme="dark"] .modal-footer{background:#1e293b;border-color:#2d3f55}
+[data-theme="dark"] .dropdown{background:#1e293b;border-color:#2d3f55}
+[data-theme="dark"] .dropdown button:hover{background:#0f172a}
+[data-theme="dark"] .card{background:#1e293b;border-color:#2d3f55}
+[data-theme="dark"] .stat-card{background:#1e293b;border-color:#2d3f55}
+[data-theme="dark"] .cargo-selector,[data-theme="dark"] .version-item,
+[data-theme="dark"] .var-field,[data-theme="dark"] .tag-item,
+[data-theme="dark"] .cat-item,[data-theme="dark"] .new-tag-form{background:#0f172a;border-color:#2d3f55}
+[data-theme="dark"] .form-group input,
+[data-theme="dark"] .form-group textarea,
+[data-theme="dark"] .form-group select,
+[data-theme="dark"] .var-field input,
+[data-theme="dark"] .var-field select{background:#0f172a;border-color:#2d3f55;color:#e2e8f0}
+[data-theme="dark"] .tags-wrap{background:#0f172a;border-color:#2d3f55}
+[data-theme="dark"] .search-box input{background:#0f172a;border-color:#2d3f55;color:#e2e8f0}
+[data-theme="dark"] .ql-editor{background:#0f172a;color:#e2e8f0}
+[data-theme="dark"] .ql-editor *:not(a){color:#e2e8f0!important;background-color:transparent!important}
+[data-theme="dark"] .ql-editor a{color:#60a5fa!important}
+[data-theme="dark"] .ql-toolbar{background:#0f172a;border-color:#2d3f55!important}
+[data-theme="dark"] .ql-container{border-color:#2d3f55!important}
+[data-theme="dark"] .tag-chip{background:#1e293b;border-color:#2d3f55;color:#94a3b8}
+[data-theme="dark"] .entry-tag{background:#0f172a;border-color:#2d3f55}
+[data-theme="dark"] .btn-outline{background:#1e293b;border-color:#2d3f55;color:#94a3b8}
+[data-theme="dark"] .btn-outline:hover{background:#0f172a}
+[data-theme="dark"] #dCode{background:#0f172a;border-color:#2d3f55;color:#94a3b8}
+
+/* Print */
+@media print{
+  .sidebar,.header-right,.detail-actions,.modal-footer,#statsBar,.toolbar,#tagFilters,.fav-btn,.card-menu,.copy-toast{display:none!important}
+  .layout{display:block}header{display:none}main{padding:0}
+  .overlay{position:static!important;display:block!important;background:none!important;padding:0!important;backdrop-filter:none!important}
+  .modal{max-width:100%!important;max-height:none!important;box-shadow:none!important;border:none!important;border-radius:0!important}
+  .modal-header{position:static!important}
+  .etiqueta{background:#fff3cd!important;color:#000!important;border-color:#ffc107!important}
+  body{font-family:'Arial',sans-serif;font-size:12pt}
+}
+
+/* Cat modal */
+.cat-item{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px}
+.cat-item>span{flex:1;font-size:13px;font-weight:500}
+.del-cat{background:none;border:none;color:var(--danger);cursor:pointer;font-size:15px;padding:2px 5px;border-radius:4px}
+.del-cat:hover{background:var(--danger-light)}
+.color-swatches{display:flex;gap:5px;flex-wrap:wrap}
+.swatch{width:20px;height:20px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:border-color .1s}
+.swatch.sel{border-color:var(--text)}
+
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+@media(max-width:768px){
+  .layout{grid-template-columns:1fr}.sidebar{display:none}
+  .stats{grid-template-columns:1fr 1fr}.cards-grid{grid-template-columns:1fr}.form-row{grid-template-columns:1fr}
+  .tag-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">&#128218;</div>
+    <div><div class="logo-text">Base DPC</div><div class="logo-sub">Contraloría de Bogotá</div></div>
+  </div>
+  <nav class="sidebar-nav" id="sidebarNav"></nav>
+  <div class="sidebar-footer">
+    <button onclick="openTagManager()">&#9668;&#9002; Gestionar etiquetas</button>
+    <button onclick="importData()">&#8679; Importar JSON</button>
+    <button onclick="exportData()">&#8681; Exportar JSON</button>
+  </div>
+</aside>
+
+<!-- Header -->
+<header>
+  <div class="search-box">
+    <span class="si">&#128269;</span>
+    <input type="text" id="searchInput" placeholder="Buscar respuestas... (Ctrl+K)" oninput="renderEntries()">
+  </div>
+  <div class="header-right">
+    <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">&#9790;</button>
+    <button class="btn btn-outline btn-sm" onclick="openCatModal()">&#9868; Categorías</button>
+    <button class="btn btn-primary btn-sm" onclick="openEntryModal()">+ Nueva entrada</button>
+  </div>
+</header>
+
+<!-- Main -->
+<main>
+  <div class="stats" id="statsBar"></div>
+  <div class="toolbar">
+    <div class="toolbar-title" id="viewTitle">Todas las entradas</div>
+    <div class="tag-filters" id="tagFilters"></div>
+  </div>
+  <div class="cards-grid" id="cardsGrid"></div>
+</main>
+</div>
+
+<div class="copy-toast" id="toast"></div>
+
+<!-- ══ MODAL: Nueva/Editar entrada ══ -->
+<div class="overlay" id="entryOverlay" onclick="backdropClose(event,'entryOverlay')">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="entryModalTitle">Nueva entrada</h2>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('entryOverlay')">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Título *</label>
+          <input type="text" id="fTitle" placeholder="Título de la respuesta">
+        </div>
+        <div class="form-group">
+          <label>Categoría</label>
+          <select id="fCategory"></select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label style="display:flex;align-items:center;justify-content:space-between">
+          <span>Contenido — usa <span style="font-family:monospace;background:var(--tag-bg);color:var(--tag-color);padding:1px 4px;border-radius:3px;font-size:10px">{{ETIQUETA}}</span> para variables</span>
+          <button type="button" id="htmlToggleBtn" class="btn btn-outline btn-xs" onclick="toggleHtmlSource()" style="font-family:monospace">&#60;/&#62; Fuente HTML</button>
+        </label>
+        <div style="margin-bottom:6px;display:flex;gap:5px;flex-wrap:wrap;align-items:center" id="tagInsertRow">
+          <span style="font-size:11px;color:var(--text3)">Insertar:</span>
+          <div id="tagInsertButtons"></div>
+          <button type="button" class="btn btn-outline btn-xs" onclick="toggleNumConverter()" style="margin-left:4px" title="Convertir número a letras">123&#8594;abc</button>
+        </div>
+        <!-- Convertidor número a letras -->
+        <div id="numConverterBox" style="display:none;background:var(--bg);border:1px solid var(--tag-border);border-radius:var(--radius);padding:10px 12px;margin-bottom:6px;display:none">
+          <div style="font-size:10px;font-weight:700;color:var(--tag-color);margin-bottom:7px">&#128290; Número en letras</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:flex-start">
+            <input id="numInput" type="number" min="0" placeholder="Ej: 3" oninput="updateNumResult()"
+              style="width:100px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 9px;font-size:13px;color:var(--text);outline:none">
+            <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:200px">
+              <div id="numResult" style="font-size:13px;color:var(--text2);min-height:24px"></div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap" id="numInsertBtns"></div>
+            </div>
+          </div>
+        </div>
+        <div id="quillEditor"></div>
+        <textarea id="fHtmlSource" style="display:none;width:100%;font-family:monospace;font-size:12px;min-height:200px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:10px;color:var(--text);outline:none;resize:vertical;line-height:1.5" placeholder="HTML de la respuesta..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Código / texto adicional (opcional)</label>
+        <textarea id="fCode" style="font-family:monospace;font-size:12px;min-height:60px" placeholder="Código, queries, texto sin formato..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Etiquetas de búsqueda</label>
+          <div class="tags-wrap" id="tagsWrap" onclick="document.getElementById('tagInput').focus()">
+            <input type="text" id="tagInput" placeholder="Agregar etiqueta..." onkeydown="handleTagInput(event)">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Nota de versión (opcional)</label>
+          <input type="text" id="fVersionNote" placeholder="Ej: Actualizado según Decreto 409">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('entryOverlay')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveEntry()">Guardar entrada</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Detalle ══ -->
+<div class="overlay" id="detailOverlay" onclick="backdropClose(event,'detailOverlay')">
+  <div class="modal detail-modal">
+    <div class="modal-header">
+      <div style="flex:1;min-width:0">
+        <div id="dCatBadge" style="margin-bottom:4px"></div>
+        <h2 id="dTitle" style="font-size:17px"></h2>
+      </div>
+      <div style="display:flex;gap:5px;flex-shrink:0;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" id="dFavBtn" onclick="toggleFav()" style="font-size:16px;padding:4px 6px">&#9733;</button>
+        <button class="btn btn-outline btn-sm" id="dEditBtn">&#9998; Editar</button>
+        <button class="btn btn-outline btn-sm" onclick="window.print()">&#128438; Imprimir</button>
+        <button class="btn btn-ghost btn-sm" onclick="closeModal('detailOverlay')">&#10005;</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="detail-actions">
+        <button class="btn btn-success btn-sm" onclick="copyRichText()">&#128203; Copiar para Word</button>
+        <button class="btn btn-purple btn-sm" onclick="openFillModal()">&#9998; Completar etiquetas</button>
+        <button class="btn btn-outline btn-sm" onclick="openHistoryModal()">&#128336; Historial</button>
+        <span id="dUsageLabel" style="font-size:10px;color:var(--text3);margin-left:auto;align-self:center"></span>
+      </div>
+      <div class="detail-content" id="dHtmlContent"></div>
+      <div id="dCodeWrap" style="display:none;margin-top:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase">Código adicional</span>
+          <button class="btn btn-outline btn-xs" onclick="copyPlainCode()">Copiar</button>
+        </div>
+        <pre id="dCode" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:12px;overflow-x:auto;line-height:1.5;white-space:pre-wrap;font-family:monospace"></pre>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px" id="dTags"></div>
+      <div style="font-size:11px;color:var(--text3)" id="dDate"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Completar Etiquetas ══ -->
+<div class="overlay" id="fillOverlay" onclick="backdropClose(event,'fillOverlay')">
+  <div class="modal var-modal">
+    <div class="modal-header">
+      <h2>&#9002; Completar etiquetas</h2>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('fillOverlay')">&#10005;</button>
+    </div>
+    <div class="modal-body" id="fillBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('fillOverlay')">Cancelar</button>
+      <button class="btn btn-success" onclick="copyFilled()">&#128203; Copiar respuesta completada</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Gestionar Etiquetas ══ -->
+<div class="overlay" id="tagManagerOverlay" onclick="backdropClose(event,'tagManagerOverlay')">
+  <div class="modal tag-manager-modal">
+    <div class="modal-header">
+      <h2>&#9002; Gestionar etiquetas <code style="font-size:11px;background:var(--tag-bg);color:var(--tag-color);border-radius:4px;padding:1px 6px;margin-left:4px">{{ETIQUETA}}</code></h2>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('tagManagerOverlay')">&#10005;</button>
+    </div>
+    <div class="modal-body">
+      <!-- ── 1. Nueva etiqueta (ARRIBA) ── -->
+      <div class="new-tag-form" style="margin-bottom:12px">
+        <div class="new-tag-form-title">+ Nueva etiqueta personalizada</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nombre (sin espacios, mayúsculas)</label>
+            <input type="text" id="ntName" placeholder="Ej: DECRETO" style="font-family:monospace;text-transform:uppercase" oninput="this.value=this.value.toUpperCase().replace(/\s+/g,'_')">
+          </div>
+          <div class="form-group">
+            <label>Tipo</label>
+            <select id="ntType" onchange="renderNewTagOptions()">
+              <option value="text">Texto libre</option>
+              <option value="number">Número</option>
+              <option value="dropdown">Lista de opciones</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Descripción / etiqueta legible</label>
+          <input type="text" id="ntLabel" placeholder="Ej: Número del decreto">
+        </div>
+        <div id="ntOptionsWrap" style="display:none">
+          <div class="form-group">
+            <label>Opciones (una por línea)</label>
+            <textarea id="ntOptions" placeholder="Opción 1&#10;Opción 2&#10;Opción 3" style="min-height:70px"></textarea>
+          </div>
+        </div>
+        <div>
+          <button class="btn btn-purple btn-sm" onclick="createCustomTag()">+ Agregar etiqueta</button>
+        </div>
+      </div>
+
+      <div style="font-size:12px;color:var(--text2);background:var(--accent-light);border:1px solid #bfdbfe;border-radius:6px;padding:9px 12px;margin-bottom:8px">
+        Usa <code style="font-family:monospace;background:var(--tag-bg);color:var(--tag-color);border-radius:3px;padding:1px 4px">{{NOMBRE}}</code> en el texto de una respuesta.
+        Al copiar, un formulario pedirá el valor de cada etiqueta. <strong>&#9998;</strong> edita · <strong>&#128465;</strong> elimina.
+      </div>
+
+      <!-- ── 2. Lista de etiquetas (colapsable) ── -->
+      <details id="tagsListSection" style="margin-bottom:8px" open>
+        <summary style="cursor:pointer;font-size:12px;font-weight:700;color:var(--text2);padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);list-style:none;display:flex;align-items:center;gap:8px;user-select:none">
+          <span style="flex:1">&#9002; Etiquetas disponibles</span>
+          <span id="tagsListArrow">&#9650;</span>
+        </summary>
+        <div style="background:var(--bg);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);padding:10px;display:flex;flex-direction:column;gap:4px">
+          <div class="tag-grid" id="tagGrid"></div>
+        </div>
+      </details>
+
+      <!-- ── Planta de cargos ── -->
+      <details id="cargosSection" style="margin-bottom:8px">
+        <summary style="cursor:pointer;font-size:12px;font-weight:700;color:var(--text2);padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);list-style:none;display:flex;align-items:center;gap:8px;user-select:none">
+          <span style="flex:1">&#9868; Planta de cargos <span style="font-weight:400;color:var(--text3)">(lista usada en el selector de cargo)</span></span>
+          <span id="cargosArrow">&#9660;</span>
+        </summary>
+        <div id="cargosBody" style="background:var(--bg);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);padding:14px;display:flex;flex-direction:column;gap:8px"></div>
+      </details>
+
+      <!-- ── Valores por defecto ── -->
+      <details id="defaultsSection">
+        <summary style="cursor:pointer;font-size:12px;font-weight:700;color:var(--text2);padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);list-style:none;display:flex;align-items:center;gap:8px;user-select:none">
+          <span style="flex:1">&#9881; Valores por defecto <span style="font-weight:400;color:var(--text3)">(pre-llenan el modal "Completar etiquetas")</span></span>
+          <span id="defaultsArrow">&#9660;</span>
+        </summary>
+        <div id="defaultsBody" style="background:var(--bg);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);padding:14px;display:flex;flex-direction:column;gap:10px"></div>
+      </details>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('tagManagerOverlay')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Historial ══ -->
+<div class="overlay" id="historyOverlay" onclick="backdropClose(event,'historyOverlay')">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header"><h2>&#128336; Historial de versiones</h2><button class="btn btn-ghost btn-sm" onclick="closeModal('historyOverlay')">&#10005;</button></div>
+    <div class="modal-body" id="historyBody"></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('historyOverlay')">Cerrar</button></div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Categorías ══ -->
+<div class="overlay" id="catOverlay" onclick="backdropClose(event,'catOverlay')">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header"><h2>&#128193; Categorías</h2><button class="btn btn-ghost btn-sm" onclick="closeModal('catOverlay')">&#10005;</button></div>
+    <div class="modal-body">
+      <div id="catList" style="display:flex;flex-direction:column;gap:6px;margin-bottom:4px"></div>
+      <div style="background:var(--bg);border:2px dashed var(--border2);border-radius:var(--radius);padding:14px;margin-top:10px;display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:11px;font-weight:700;color:var(--text2)">+ Nueva categoría</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="newCatIcon" placeholder="📁" maxlength="2"
+            style="width:48px;text-align:center;font-size:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:6px;outline:none;cursor:pointer"
+            title="Escribe o pega un emoji">
+          <input type="text" id="newCatName" placeholder="Nombre de la categoría..."
+            style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:8px 11px;color:var(--text);font-size:13px;outline:none;font-family:inherit"
+            onkeydown="if(event.key==='Enter')addCategory()">
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:11px;color:var(--text3)">Color:</span>
+          <div class="color-swatches" id="catColorPicker"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('catOverlay')">Cerrar</button>
+      <button class="btn btn-primary" onclick="addCategory()">+ Agregar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Confirmar ══ -->
+<div class="overlay" id="confirmOverlay">
+  <div class="modal confirm-modal">
+    <div class="modal-body" style="text-align:center;padding:26px 20px">
+      <div style="font-size:38px;margin-bottom:10px">&#128465;&#65039;</div>
+      <h2 style="margin-bottom:8px">Eliminar entrada</h2>
+      <p style="color:var(--text2);font-size:13px">Esta acción no se puede deshacer.</p>
+    </div>
+    <div class="modal-footer" style="justify-content:center">
+      <button class="btn btn-outline" onclick="closeModal('confirmOverlay')">Cancelar</button>
+      <button class="btn btn-danger" id="confirmDeleteBtn">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="importFile" accept=".json" style="display:none" onchange="handleImport(event)">
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+<script>
+// ══════════════════════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════════════════════
+const CARGOS = [{"denominacion": "ALMACENISTA GENERAL", "codigo": "215", "grado": "8"}, {"denominacion": "ASESOR", "codigo": "105", "grado": "1"}, {"denominacion": "ASESOR", "codigo": "105", "grado": "2"}, {"denominacion": "AUXILIAR ADMINISTRATIVO", "codigo": "407", "grado": "3"}, {"denominacion": "AUXILIAR ADMINISTRATIVO", "codigo": "407", "grado": "4"}, {"denominacion": "AUXILIAR DE SERVICIOS GENERALES", "codigo": "470", "grado": "1"}, {"denominacion": "CONDUCTOR MECÁNICO", "codigo": "482", "grado": "4"}, {"denominacion": "CONTRALOR", "codigo": "010", "grado": "0"}, {"denominacion": "CONTRALOR AUXILIAR", "codigo": "035", "grado": "5"}, {"denominacion": "DIRECTOR ADMINISTRATIVO", "codigo": "009", "grado": "4"}, {"denominacion": "DIRECTOR TÉCNICO", "codigo": "009", "grado": "4"}, {"denominacion": "GERENTE", "codigo": "039", "grado": "1"}, {"denominacion": "GERENTE", "codigo": "039", "grado": "2"}, {"denominacion": "JEFE DE OFICINA", "codigo": "006", "grado": "4"}, {"denominacion": "JEFE DE OFICINA ASESORA DE COMUNICACIONES", "codigo": "115", "grado": "3"}, {"denominacion": "PROFESIONAL ESPECIALIZADO", "codigo": "222", "grado": "5"}, {"denominacion": "PROFESIONAL ESPECIALIZADO", "codigo": "222", "grado": "7"}, {"denominacion": "PROFESIONAL ESPECIALIZADO", "codigo": "222", "grado": "8"}, {"denominacion": "PROFESIONAL ESPECIALIZADO", "codigo": "222", "grado": "9"}, {"denominacion": "PROFESIONAL UNIVERSITARIO", "codigo": "219", "grado": "1"}, {"denominacion": "PROFESIONAL UNIVERSITARIO", "codigo": "219", "grado": "3"}, {"denominacion": "SECRETARIO", "codigo": "440", "grado": "7"}, {"denominacion": "SECRETARIO", "codigo": "440", "grado": "8"}, {"denominacion": "SECRETARIO EJECUTIVO", "codigo": "425", "grado": "9"}, {"denominacion": "SUBDIRECTOR ADMINISTRATIVO", "codigo": "068", "grado": "3"}, {"denominacion": "SUBDIRECTOR FINANCIERO", "codigo": "068", "grado": "3"}, {"denominacion": "SUBDIRECTOR TÉCNICO", "codigo": "068", "grado": "3"}, {"denominacion": "TÉCNICO OPERATIVO", "codigo": "314", "grado": "3"}, {"denominacion": "TÉCNICO OPERATIVO", "codigo": "314", "grado": "5"}, {"denominacion": "TESORERO GENERAL", "codigo": "201", "grado": "8"}];
+
+const DEFAULT_TAGS = [{"id": "t_cargo", "name": "CARGO", "type": "cargo", "label": "Cargo completo (DENOMINACION CÓDIGO # GRADO #)", "group": "cargo", "builtin": true}, {"id": "t_denom", "name": "DENOMINACION", "type": "auto_cargo", "label": "Denominación del cargo", "source": "denominacion", "group": "cargo", "builtin": true}, {"id": "t_codigo", "name": "CODIGO", "type": "auto_cargo", "label": "Código del cargo", "source": "codigo", "group": "cargo", "builtin": true}, {"id": "t_grado", "name": "GRADO", "type": "auto_cargo", "label": "Grado del cargo", "source": "grado", "group": "cargo", "builtin": true}, {"id": "t_opec", "name": "OPEC", "type": "text", "label": "Número de OPEC", "placeholder": "Ej: 1234567", "builtin": true}, {"id": "t_proceso", "name": "PROCESO", "type": "text", "label": "Número de proceso de selección", "placeholder": "Ej: 1358 de 2020", "builtin": true}, {"id": "t_vacantes", "name": "NUM_VACANTES", "type": "number", "label": "Número de vacantes", "placeholder": "Ej: 3", "builtin": true}, {"id": "t_vacdef", "name": "VAC_DEFINITIVAS", "type": "number", "label": "Vacantes definitivas", "placeholder": "Ej: 2", "builtin": true}, {"id": "t_fecha", "name": "FECHA_CORTE", "type": "text", "label": "Fecha de corte", "placeholder": "Ej: 14 de mayo de 2026", "builtin": true}, {"id": "t_fecha2", "name": "FECHA_RESPUESTA", "type": "text", "label": "Fecha de respuesta", "placeholder": "Ej: 30 de mayo de 2026", "builtin": true}, {"id": "t_rad", "name": "RADICADO", "type": "text", "label": "Número de radicado", "placeholder": "Ej: 2026RS045498", "builtin": true}, {"id": "t_empleado", "name": "NOMBRE_EMPLEADO", "type": "text", "label": "Nombre del empleado", "placeholder": "Ej: JUAN PÉREZ GÓMEZ", "builtin": true}, {"id": "t_cedula", "name": "CEDULA", "type": "text", "label": "Cédula del empleado", "placeholder": "Ej: 79123456", "builtin": true}, {"id": "t_entidad", "name": "ENTIDAD", "type": "text", "label": "Entidad solicitante", "placeholder": "Ej: Contraloría de Bogotá", "builtin": true}];
+
+const SEED_DATA = {"categories": [{"id": "3e18bbee8f90", "name": "Equivalencias", "color": "#6366f1"}, {"id": "a5618b66f3c0", "name": "Reporte de Vacancias a la CNSC", "color": "#0ea5e9"}, {"id": "50488cb95314", "name": "Cargos a la fecha", "color": "#10b981"}, {"id": "3752de6bb116", "name": "Acuerdos", "color": "#f59e0b"}, {"id": "ae02a75a0703", "name": "CECAT", "color": "#ef4444"}, {"id": "775db7e208e0", "name": "IA", "color": "#8b5cf6"}, {"id": "73dd87bed28b", "name": "Informaci\u00f3n Contraloria", "color": "#06b6d4"}], "entries": [{"id": "d8f26b3a736d", "title": "Decreto Equivalencias", "html": "</div><p style=\"margin&#58;0cm 0cm 8pt;text-indent&#58;35.45pt;line-height&#58;150%;font-size&#58;12pt;font-family&#58;Arial, sans-serif;\"><b>RESPUESTA&#58;</b> Primeramente, antes de dar respuesta a los\nnumerales 4.1 y 4.2 de su solicitud es preciso indicar que el art\u00edculo No. 2.2.11.2.3\ndel Decreto 1083 de 2015 indica lo siguiente sobre los empleos\nequivalentes&#58;<span style=\"\">&#160; </span></p><p style=\"margin&#58;0cm 0cm 8pt;text-indent&#58;35.45pt;line-height&#58;150%;font-size&#58;12pt;font-family&#58;Arial, sans-serif;text-indent&#58;0cm;\"><b><i>(\u2026) ART\u00cdCULO 2.2.11.2.3.\nEMPLEOS EQUIVALENTES&#58;</i></b><i> Se entiende que un cargo es equivalente a otro\ncuando tienen asignadas funciones iguales o similares, para su desempe\u00f1o se\nexijan requisitos de estudio, experiencia y competencias laborales iguales o\nsimilares y tengan una asignaci\u00f3n b\u00e1sica mensual igual o superior, sin que en\nning\u00fan caso la diferencia salarial supere los dos grados siguientes de la\nrespectiva escala cuando se trata de empleos que se rijan por la misma\nnomenclatura, o el diez por ciento (10\u202f%) de la asignaci\u00f3n b\u00e1sica cuando a los\nempleos se les aplique nomenclatura diferente.<b> (\u2026)</b></i></p><p style=\"margin&#58;0cm 0cm 8pt;text-indent&#58;35.45pt;line-height&#58;150%;font-size&#58;12pt;font-family&#58;Arial, sans-serif;text-indent&#58;0cm;\"></p><p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Arial, sans-serif;text-indent&#58;35.45pt;line-height&#58;150%;\"><span style=\"font-size&#58;12pt;color&#58;black;line-height&#58;normal;\">Ahora bien, en atenci\u00f3n a su consulta, se informa que, una vez\nverificados los criterios normativos establecidos en el Decreto 1083 de 2015,\nen la planta global de la Contralor\u00eda de Bogot\u00e1 existen dos (X) empleos\nequivalentes al empleo reportado en la OPEC </span><span style=\"font-size&#58;12pt;color&#58;black;line-height&#58;normal;\">No. XXXXXX</span><span style=\"font-size&#58;12pt;color&#58;black;line-height&#58;normal;\">, no obstante es preciso indicar que</span><span style=\"font-size&#58;11pt;color&#58;black;\"><span style=\"font-size&#58;12pt;line-height&#58;normal;\">&#160;\n</span></span><span style=\"font-size&#58;12pt;color&#58;black;line-height&#58;normal;\">en atenci\u00f3n a las directrices, instrucciones y lineamientos impartidos\npor la Comisi\u00f3n Nacional del Servicio Civil \u2013 CNSC, particularmente en los\noficios CNSC No. 2026RS045498 del 10 de marzo de 2026 mediante el cual se\ncomunic\u00f3 la firmeza de las listas de elegibles para ascenso y oficio con\nradicado No. 2026RS061437 del 6 de abril de 2026, mediante el cual se comunic\u00f3\nla firmeza de las listas de elegibles para la modalidad abierto, en armon\u00eda con\nlo dispuesto en el art\u00edculo 24</span><span style=\"font-size&#58;11pt;color&#58;black;\"><a style=\"\" href=\"#_ftn1\" title=\"\"><sup><span style=\"\"><sup><span style=\"font-family&#58;Arial, sans-serif;font-size&#58;12pt;line-height&#58;normal;\">[1]</span></sup></span></sup></a></span><span style=\"font-size&#58;12pt;color&#58;black;line-height&#58;normal;\"> del\nAcuerdo No. 056 de 2024 de la CNSC</span><span style=\"font-size&#58;12pt;color&#58;black;line-height&#58;normal;\"><u style=\"line-height&#58;normal;\">, las listas producto del Proceso de\nSelecci\u00f3n No. 1358 de 2020 \u201cContralor\u00edas Territoriales\u201d, s\u00f3lo podr\u00e1n utilizarse\npara proveer, durante su vigencia, las vacantes para las cuales fueron\nconformadas, esto es, aquellas generadas con anterioridad al 16 de marzo de\n2020.</u></span></p><p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Arial, sans-serif;text-indent&#58;35.45pt;line-height&#58;150%;\"><span style=\"font-size&#58;11.0pt;color&#58;black;\">&#160;</span></p><span style=\"font-size&#58;12pt;font-family&#58;Arial, sans-serif;color&#58;black;\">Por lo anterior, es pertinente indicar, que la\nContralor\u00eda de Bogot\u00e1 D.C., no har\u00e1 uso de las listas de elegibles para proveer\nvacantes definitivas o equivalentes cuando estas no corresponden estrictamente\na los cargos ofertados en el proceso de selecci\u00f3n.</span><div style=\"font-style&#58;italic;font-weight&#58;bold;\"><br><hr align=\"left\" size=\"1\" width=\"33%\" /><div style=\"\"><p style=\"margin&#58;0cm;text-indent&#58;35.45pt;font-size&#58;10pt;font-family&#58;Arial, sans-serif;text-indent&#58;0cm;\"><a style=\"\" href=\"#_ftnref1\" title=\"\"><span style=\"vertical-align&#58;super;\"><span style=\"font-size&#58;8.0pt;\"><span style=\"\"><span style=\"vertical-align&#58;super;\"><span style=\"font-family&#58;&quot;Arial&quot;,sans-serif;\">[1]</span></span></span></span></span></a><span style=\"font-size&#58;8.0pt;\"> Mediante el cual se\nmodific\u00f3 el art\u00edculo 31 del Acuerdo CNSC No. 0167 del 12 de marzo de 2020.</span><span lang=\"ES\" style=\"font-size&#58;8.0pt;\"></span></p></div></div><br><p></p><p style=\"margin&#58;0cm 0cm 8pt;text-indent&#58;35.45pt;line-height&#58;150%;font-size&#58;12pt;font-family&#58;Arial, sans-serif;text-indent&#58;0cm;\"><i><b><br></b></i></p><p style=\"margin&#58;0cm 0cm 8pt;text-indent&#58;35.45pt;line-height&#58;150%;font-size&#58;12pt;font-family&#58;Arial, sans-serif;text-indent&#58;0cm;\"><i><b><br></b></i></p><div>", "body": "", "code": "", "categoryId": "3e18bbee8f90", "tags": [], "createdAt": 1780184730295, "updatedAt": 1780184730295, "versions": [], "favorite": false, "usageCount": 0}, {"id": "aac7b74b8825", "title": "REPORTE VACANCIAS A CNSC", "html": "<p style=\"margin&#58;0cm 0cm 8pt;text-indent&#58;35.45pt;line-height&#58;150%;font-size&#58;11pt;font-family&#58;Calibri, Arial, Helvetica, sans-serif;color&#58;rgb(50, 49, 48);background-color&#58;transparent;\"><b style=\"font-family&#58;Arial, sans-serif;font-size&#58;12pt;text-indent&#58;35.45pt;background-color&#58;transparent;\">RESPUESTA&#58;</b><span style=\"font-family&#58;Arial, sans-serif;font-size&#58;12pt;text-indent&#58;35.45pt;background-color&#58;transparent;\">&#160;La Contralor\u00eda de Bogot\u00e1 D.C</span><b style=\"font-family&#58;Arial, sans-serif;font-size&#58;12pt;text-indent&#58;35.45pt;background-color&#58;transparent;\">.</b><span style=\"font-family&#58;Arial, sans-serif;font-size&#58;12pt;text-indent&#58;35.45pt;background-color&#58;transparent;\">\nno ha reportado vacancias definitivas a la Comisi\u00f3n Nacional del Servicio Civil\n(CNSC) a trav\u00e9s del aplicativo </span><b style=\"font-family&#58;Arial, sans-serif;font-size&#58;12pt;text-indent&#58;35.45pt;background-color&#58;transparent;\">SIMO</b><span style=\"font-family&#58;Arial, sans-serif;font-size&#58;12pt;text-indent&#58;35.45pt;background-color&#58;transparent;\">, toda vez que dicha Comisi\u00f3n </span><b style=\"font-family&#58;Arial, sans-serif;font-size&#58;12pt;text-indent&#58;35.45pt;background-color&#58;transparent;\">perdi\u00f3\ncompetencia para el reporte y administraci\u00f3n de estas vacantes</b><span style=\"font-family&#58;Arial, sans-serif;font-size&#58;12pt;text-indent&#58;35.45pt;background-color&#58;transparent;\">, en virtud\nde lo dispuesto en el Decreto Ley 409 de 16 de marzo de 2020, mediante el cual\nse definieron los lineamientos y alcances sobre la gesti\u00f3n de los procesos de\nselecci\u00f3n y el uso de listas de elegibles, as\u00ed como las competencias asociadas\na los mismos.</span></p><p style=\"margin&#58;0cm 0cm 8pt;text-indent&#58;35.45pt;line-height&#58;150%;font-size&#58;12pt;font-family&#58;Arial, sans-serif;\">En consecuencia, no se cuenta con reporte alguno susceptible\nde ser adjuntado, por no subsistir obligaci\u00f3n legal ni competencia vigente para\nefectuar dicho tr\u00e1mite ante la CNSC.</p>", "body": "", "code": "", "categoryId": "a5618b66f3c0", "tags": [], "createdAt": 1780184730296, "updatedAt": 1780184730296, "versions": [], "favorite": false, "usageCount": 0}, {"id": "68a2e853fc32", "title": "CARGOS A LA FECHA", "html": "<span style=\"font-size&#58;12.0pt;line-height&#58;150%;font-family&#58;&quot;Arial&quot;,sans-serif;\"><b><span style=\"font-size&#58;12.0pt;line-height&#58;150%;font-family&#58;&quot;Arial&quot;,sans-serif;\">RESPUESTA&#58;\n</span></b>Nos\npermitimos dar respuesta informando que el empleo <b>PROFESIONAL\nESPECIALIZADO, C\u00d3DIGO 222, GRADO 09 </b>ofertado en modalidad de abierto/ascenso con\nOPEC No. XXXXXX en el <i>Proceso de Selecci\u00f3n 1358 de 2020 \u2013 Contralor\u00edas\nTerritoriales</i>, fue convocado con&#160; (XXX) vacante(s) definitiva(s), y que a XXX de\nabril de 2026, no existen vacantes definitivas o temporales adicionales del\nmismo empleo. Informacion que puede ser consultada en la pagina de la <b>COMISI\u00d3N NACIONAL DEL SERVICIO CIVIL - CNSC</b> en el siguiente enlace&#160;<a href=\"https&#58;//simo.cnsc.gov.co/#historicoOfertaEmpleo\">https&#58;//simo.cnsc.gov.co/#historicoOfertaEmpleo</a>&#160;con el numero de OPEC correspondiente.<p><br></p></span><br>", "body": "", "code": "", "categoryId": "50488cb95314", "tags": [], "createdAt": 1780184730297, "updatedAt": 1780184730297, "versions": [], "favorite": false, "usageCount": 0}, {"id": "318218536e34", "title": "PLANTA DE PERSONAL POR ACUERDO", "html": "<table width=\"525\" style=\"border-collapse&#58;collapse;width&#58;394pt;\">\n\n <colgroup><col width=\"386\" style=\"width&#58;290pt;\" />\n <col width=\"139\" style=\"width&#58;104pt;\" />\n </colgroup><tbody><tr height=\"50\" style=\"height&#58;37.5pt;\">\n  <td height=\"50\" width=\"386\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;font-weight&#58;700;text-align&#58;center;vertical-align&#58;middle;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;background&#58;rgb(242, 242, 242);border&#58;1px solid rgb(212, 212, 212);height&#58;37.5pt;width&#58;290pt;\">CARGO</td>\n  <td width=\"139\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;font-weight&#58;700;text-align&#58;center;vertical-align&#58;middle;border&#58;0.5pt solid windowtext;background&#58;rgb(242, 242, 242);border&#58;1px solid rgb(212, 212, 212);border-left&#58;none;width&#58;104pt;\">ACUERDO 904 DE\n  2023</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">ALMACENISTA\n  GENERAL 215 8</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">1</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">ASESOR 105 1</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">10</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">ASESOR 105 2</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">19</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">AUXILIAR\n  ADMINISTRATIVO 407 3</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">29</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">AUXILIAR\n  ADMINISTRATIVO 407 4</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">4</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">AUXILIAR DE\n  SERVICIOS GENERALES 470 1</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">33</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">CONDUCTOR\n  MEC\u00c1NICO 482 4</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">26</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">CONTRALOR 010\n  0</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">1</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">CONTRALOR\n  AUXILIAR 035 5</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">1</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">DIRECTOR\n  ADMINISTRATIVO 009 4</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">1</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">DIRECTOR\n  T\u00c9CNICO 009 4</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">22</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">GERENTE 039 1</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">49</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">GERENTE 039 2</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">20</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">JEFE DE\n  OFICINA 006 4</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">2</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">JEFE DE\n  OFICINA ASESORA DE COMUNICACIONES 115 3</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">1</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">PROFESIONAL\n  ESPECIALIZADO 222 5</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">48</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">PROFESIONAL\n  ESPECIALIZADO 222 7</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">210</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">PROFESIONAL\n  ESPECIALIZADO 222 8</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">2</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">PROFESIONAL\n  ESPECIALIZADO 222 9</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">3</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">PROFESIONAL\n  UNIVERSITARIO 219 1</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">73</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">PROFESIONAL\n  UNIVERSITARIO 219 3</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">283</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">SECRETARIO\n  440 7</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">9</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">SECRETARIO\n  440 8</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">58</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">SECRETARIO\n  EJECUTIVO 425 9</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">6</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">SUBDIRECTOR\n  ADMINISTRATIVO 068 3</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">1</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">SUBDIRECTOR\n  FINANCIERO 068 3</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">1</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">SUBDIRECTOR\n  T\u00c9CNICO 068 3</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">27</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">T\u00c9CNICO\n  OPERATIVO 314 3</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">31</td>\n </tr>\n <tr height=\"25\" style=\"height&#58;18.75pt;\">\n  <td height=\"25\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;18.75pt;border-top&#58;none;\">T\u00c9CNICO\n  OPERATIVO 314 5</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border&#58;0.5pt solid windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">72</td>\n </tr>\n <tr height=\"23\" style=\"height&#58;17.25pt;\">\n  <td height=\"23\" style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;font-size&#58;14pt;border-width&#58;0.5pt 0.5pt 1pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);height&#58;17.25pt;border-top&#58;none;\">TESORERO\n  GENERAL 201 8</td>\n  <td style=\"padding-top&#58;1px;padding-right&#58;1px;padding-left&#58;1px;color&#58;black;font-size&#58;11pt;font-family&#58;Calibri, sans-serif;vertical-align&#58;bottom;border-width&#58;medium;border-style&#58;none;border-color&#58;currentcolor;color&#58;windowtext;font-size&#58;14pt;text-align&#58;center;border-width&#58;0.5pt 0.5pt 1pt;border-style&#58;solid;border-color&#58;windowtext;border&#58;1px solid rgb(212, 212, 212);border-top&#58;none;border-left&#58;none;\">1</td>\n </tr></tbody></table><br>", "body": "", "code": "", "categoryId": "3752de6bb116", "tags": [], "createdAt": 1780184730298, "updatedAt": 1780184730298, "versions": [], "favorite": false, "usageCount": 0}, {"id": "f03f536c5183", "title": "Acuerdo 658 de 2026", "html": "<span style=\"font-size&#58;12.0pt;line-height&#58;150%;font-family&#58;&quot;Arial&quot;,sans-serif;\">Los cargos asignados\npor el Acuerdo 658 de 2016 del 21 de diciembre de 2026 \u201c<b><i>Por el cual se\ndictan normas sobre organizaci\u00f3n y funcionamiento de la Contralor\u00eda de Bogot\u00e1,\nD.C., se modifica su estructura org\u00e1nica e interna, se fijan funciones de sus\ndependencias, se modifica la planta de personal, y se dictan otras\ndisposiciones</i></b><i>\u201d</i> en su <b>Art\u00edculo 67</b>. <b>Planta de Empleos</b>,\nacuerdo que puede ser consultado en el enlace&#58;\nttps&#58;//www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=67734</span><br>", "body": "", "code": "", "categoryId": "3e18bbee8f90", "tags": [], "createdAt": 1780184730299, "updatedAt": 1780184730299, "versions": [], "favorite": false, "usageCount": 0}, {"id": "ef66d62fa670", "title": "Vacancias Definitivas CECACT", "html": "<span style=\"font-size&#58;12.0pt;line-height&#58;150%;font-family&#58;&quot;Arial&quot;,sans-serif;\">Por\nlo cual y atendiendo su solicitud la <b>DIRECCI\u00d3N\nDE TALENTO HUMANO</b> informa que a <span style=\"\">fecha\nde corte a 10 de abril de 2026</span> se registran dos (2) vacantes definitivas\ngeneradas despu\u00e9s del 16 de marzo de 2020, por lo cual no fueron objeto de reporte\nen el Proceso de Selecci\u00f3n 1358 de 2020 \u2013 Contralor\u00edas Territoriales y fueron\nreportadas a la Comisi\u00f3n Especial de Contralor\u00edas Territoriales - CECACT,</span><br>", "body": "", "code": "", "categoryId": "ae02a75a0703", "tags": [], "createdAt": 1780184730300, "updatedAt": 1780184730300, "versions": [], "favorite": false, "usageCount": 0}, {"id": "ed38437f0eb7", "title": "Chachara de CECAT", "html": "<p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><b>RESPUESTA&#58; </b>De acuerdo<b> </b><span lang=\"ES\" style=\"\">me permito hacer las siguientes precisiones&#58;</span></p><p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><span lang=\"ES\" style=\"\">&#160;</span></p><ol style=\"margin-bottom&#58;0cm;margin-top&#58;0cm;\" start=\"1\" type=\"1\">\n <li style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><span lang=\"ES\" style=\"\">Con\n     la expedici\u00f3n del Decreto 409 de 2020<a style=\"\" href=\"#_ftn1\" title=\"\"><sup>[1]</sup></a> y las\n     manifestaciones elevadas por diferentes Contralor\u00edas Territoriales\n     referentes a la p\u00e9rdida de la competencia de la Comisi\u00f3n Nacional de\n     Servicio Civil - CNSC para realizar los procesos de selecci\u00f3n para proveer\n     por m\u00e9rito los empleos de carrera de sus plantas de personal, se promovi\u00f3\n     conflicto positivo de competencia ante el Consejo de Estado - Sala de\n     Servicio Civil y Consulta, el cual se pronunci\u00f3 determinando que la CNSC\n     era el \u00f3rgano competente para continuar con la ejecuci\u00f3n de los Procesos de\n     Selecci\u00f3n Nos. 1358 al 1417 de 2020 \u201cContralor\u00edas Territoriales\u201d.</span></li></ol><p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><span lang=\"ES\" style=\"\">&#160;</span></p><p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><span lang=\"ES\" style=\"\">No obstante, para\nla Comisi\u00f3n Especial de Carrera de las Contralor\u00edas Territoriales (CECAT) y las\ndiferentes Contralor\u00edas Territoriales surgi\u00f3 adicionalmente la necesidad de\nestablecer s\u00ed las nuevas vacantes surgidas con posterioridad a la expedici\u00f3n\ndel Decreto 409 de 2020</span>,<span lang=\"ES\" style=\"\">\ndeb\u00edan hacer parte o no de los Procesos de Selecci\u00f3n antes citados</span>,\nfrente a lo cual el Consejo de Estado se abstuvo de emitir un pronunciamiento,\nal resaltar que ya se encontraba decantado el conflicto positivo donde se\nreconoci\u00f3 la competencia de la CNSC para continuar con el desarrollo de los\nprocesos de selecci\u00f3n, sin embargo, precis\u00f3 lo siguiente&#58; </p><p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\">&#160;</p><p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><i><span lang=\"ES\" style=\"\">\u201c(\u2026) la CNSC\nno tendr\u00eda competencia para conocer de aquellas convocatorias p\u00fablicas o\nconcursos de los empleados de carrera de las contralor\u00edas territoriales, que no\nse encuentren en curso o en fase de planeaci\u00f3n, convocados despu\u00e9s del 16 de\nmarzo de 2020, fecha de publicaci\u00f3n del Decreto Ley 409 de 2020. (\u2026)\u201d</span></i></p><p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><span lang=\"ES\" style=\"\">&#160;</span></p><ol style=\"margin-bottom&#58;0cm;margin-top&#58;0cm;\" start=\"2\" type=\"1\">\n <li style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><span lang=\"ES\" style=\"\">De\n     acuerdo con lo anterior, la CNSC expidi\u00f3 las comunicaciones 2024RS005499\n     del 19 de enero de 2024 <a style=\"\" href=\"#_ftn2\" title=\"\"><sup>[2]</sup></a>, 2024RS038344 del 14 de marzo\n     de 2024<a style=\"\" href=\"#_ftn3\" title=\"\"><sup>[3]</sup></a> y </span><span style=\"\">2024RS044326 del 26 de marzo de 2024<a style=\"\" href=\"#_ftn4\" title=\"\"><sup>[4]</sup></a></span><span lang=\"ES\" style=\"\"> en donde emiti\u00f3 los lineamientos para el reporte de vacantes,\n     definiendo entre otras cosas que&#58; <i>\u201cLas vacantes que har\u00e1n parte del\n     proceso de selecci\u00f3n Nos. 1358 al 1417 de 2020 - Contralor\u00edas\n     Territoriales, corresponder\u00e1n a aquellas que hubiesen surgido con\n     anterioridad a la fecha de publicaci\u00f3n del Decreto 409 de 2020 y que a la\n     fecha sigan haciendo parte de las plantas de personal de las entidades\u201d.</i></span></li></ol><p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\">&#160;</p><span style=\"font-size&#58;12.0pt;font-family&#58;&quot;Aptos&quot;,sans-serif;\">Por lo cual las vacantes convocadas en el proceso de\nselecci\u00f3n CNSC, &#160;fueron las que cumpl\u00edan con dicho criterio, y que de\nacuerdo a su solicitud estaban provistas en su momento por servidores p\u00fablicos\ncon nombramiento en provisionalidad, por lo cual me permito remitir la\ninformaci\u00f3n de las vacantes definitivas que se encontraban en provisionalidad\nal primero de marzo de 2024 cuando se report\u00f3 la OPEC en SIMO 4.0&#58;</span><div style=\"\"><br><hr align=\"left\" size=\"1\" width=\"33%\" /><div style=\"\"><p style=\"margin&#58;0cm;font-size&#58;10pt;font-family&#58;&quot;Courier New&quot;;\"><a style=\"\" href=\"#_ftnref1\" title=\"\"><span style=\"vertical-align&#58;super;\"><span lang=\"ES\" style=\"font-size&#58;8.0pt;font-family&#58;&quot;Arial&quot;,sans-serif;\">[1]</span></span></a><span lang=\"ES\" style=\"font-size&#58;8.0pt;font-family&#58;&quot;Arial&quot;,sans-serif;\"> Por el cual se crea el r\u00e9gimen de carrera especial de los servidores de\nlas Contralor\u00edas Territoriales.</span><span style=\"font-size&#58;8.0pt;font-family&#58;&quot;Arial&quot;,sans-serif;\"></span></p></div><div style=\"\"><p style=\"margin&#58;0cm;font-size&#58;10pt;font-family&#58;&quot;Courier New&quot;;\"><a style=\"\" href=\"#_ftnref2\" title=\"\"><span style=\"vertical-align&#58;super;\"><span lang=\"ES\" style=\"font-size&#58;8.0pt;font-family&#58;&quot;Arial&quot;,sans-serif;\">[2]</span></span></a><span lang=\"ES\" style=\"font-size&#58;8.0pt;font-family&#58;&quot;Arial&quot;,sans-serif;\"> Mediante la cual se ordena la </span><span style=\"font-size&#58;8.0pt;font-family&#58;&quot;Arial&quot;,sans-serif;\">reanudaci\u00f3n del proceso de selecci\u00f3n 1358 al\n1417 de 2020 \u2013 \u201cContralor\u00edas territoriales\u201d.</span></p></div><div style=\"\"><p style=\"margin&#58;0cm;font-size&#58;10pt;font-family&#58;&quot;Courier New&quot;;\"><a style=\"\" href=\"#_ftnref3\" title=\"\"><span lang=\"ES\" style=\"font-size&#58;8.0pt;font-family&#58;&quot;Arial&quot;,sans-serif;\">[3] Mediante la cual se expiden lineamientos en el marco\nde los procesos de</span></a><span style=\"font-size&#58;8.0pt;font-family&#58;&quot;Arial&quot;,sans-serif;\">\nselecci\u00f3n </span><span lang=\"ES\" style=\"font-size&#58;8.0pt;font-family&#58;&quot;Arial&quot;,sans-serif;\">nro.1358 al 1417 de 2020 \u2013 Contralor\u00edas territoriales.</span></p></div><div style=\"\"><p style=\"margin&#58;0cm;font-size&#58;10pt;font-family&#58;&quot;Courier New&quot;;\"><a style=\"\" href=\"#_ftnref4\" title=\"\"><span style=\"vertical-align&#58;super;\"><span lang=\"ES\" style=\"font-size&#58;8.0pt;font-family&#58;&quot;Arial&quot;,sans-serif;\">[4]\nMediante la cual se expiden lineamientos sobre la etapa de planeaci\u00f3n</span></span></a><span lang=\"ES\" style=\"font-size&#58;8.0pt;font-family&#58;&quot;Arial&quot;,sans-serif;\"> -<span style=\"vertical-align&#58;super;\"> contralor\u00edas territoriales (procesos de\nselecci\u00f3n No. 1358 al 1417 de 2020)</span></span><span style=\"vertical-align&#58;super;\"></span></p></div></div><br>", "body": "", "code": "", "categoryId": "ae02a75a0703", "tags": [], "createdAt": 1780184730301, "updatedAt": 1780184730301, "versions": [], "favorite": false, "usageCount": 0}, {"id": "58239cb0d200", "title": "ACUERDO 658 DE 2016", "html": "<b style=\"font-size&#58;16px;text-decoration-line&#58;none;text-decoration-style&#58;solid;color&#58;rgb(33, 33, 33);font-family&#58;Aptos, sans-serif;\"><div style=\"margin-top&#58;16px;margin-bottom&#58;16px;\"><p style=\"margin&#58;0cm 0cm 10pt;text-indent&#58;35.45pt;line-height&#58;150%;font-size&#58;12pt;font-family&#58;Arial, sans-serif;\"><b><span lang=\"es-419\">RESPUESTA&#58; </span></b><span lang=\"es-419\">Por medio de la presente le informo que a 14 de mayo de 2026 que\npara el cargo PROFESIONAL ESPECIALIZADO C\u00d3DIGO 222 GRADO 07 no se han creado\ncargos, dado que la \u00faltima modificaci\u00f3n de la planta de personal para el cargo\nen menci\u00f3n se dio con el Acuerdo 519 de 2012 del 28 de diciembre de 2012 en su <b>ART\u00cdCULO\n65.- Planta de Empleos</b>, acuerdo que puede ser consultado en el enlace&#58;<span style=\"\">&#160; </span>https&#58;//www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=51049</span></p><br></div><p><b style=\"background-color&#58;transparent;text-decoration-style&#58;solid;\">RESPUESTA&#58;</b><span style=\"background-color&#58;transparent;font-weight&#58;400;\">&#160;Por medio de la presente le informo que el cargo&#160;</span><b style=\"background-color&#58;transparent;text-decoration-style&#58;solid;\">PROFESIONAL UNIVERSITARIO C\u00d3DIGO 219 GRADO 03&#160;</b><span style=\"background-color&#58;transparent;font-weight&#58;400;\">cuenta con doscientos ochenta y tres (283) cargos, asignados por el acuerdo con el&#160;Acuerdo 658 de 2016 del 21 de diciembre de 2026 en su&#160;</span><b style=\"background-color&#58;transparent;text-decoration-style&#58;solid;\"><i>Art\u00edculo</i></b><i style=\"background-color&#58;transparent;font-weight&#58;400;text-decoration-style&#58;solid;\">&#160;<b>66. Planta de Empleos</b></i><span style=\"background-color&#58;transparent;font-weight&#58;400;\">, acuerdo que puede ser consultado en el enlace&#58; &#160;</span><u style=\"background-color&#58;transparent;font-weight&#58;400;\"><span style=\"color&#58;rgb(70, 120, 134);\"><a href=\"https&#58;//www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=67734\" title=\"https&#58;//www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=67734\" style=\"color&#58;rgb(150, 96, 125);\"><span style=\"color&#58;rgb(70, 120, 134);\">https&#58;//www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=67734</span></a></span></u><span style=\"background-color&#58;transparent;font-weight&#58;400;\">&#160;.</span></p></b>", "body": "", "code": "", "categoryId": "", "tags": [], "createdAt": 1780184730302, "updatedAt": 1780184730302, "versions": [], "favorite": false, "usageCount": 0}, {"id": "a51f3016330a", "title": "ACUERDO 658 DE 2016.", "html": "<p style=\"margin&#58;0cm 0cm 8pt;text-indent&#58;35.45pt;line-height&#58;24px;font-size&#58;medium;font-family&#58;Arial, sans-serif;color&#58;rgb(0, 0, 0);text-decoration-line&#58;none;text-decoration-style&#58;solid;\"><b><span lang=\"ES-TRAD\">RESPUESTA&#58;</span></b><span lang=\"ES-TRAD\"><span>&#160;</span></span><span style=\"font-family&#58;Aptos, sans-serif;color&#58;rgb(33, 33, 33);\">Por medio de la presente le informo que para el cargo&#160;<b>T\u00c9CNICO OPERATIVO C\u00d3DIGO 314 GRADO 03&#160;</b>no se han creado cargos adicionales , ya que la ultima modificaci\u00f3n de planta asignada se dio con el&#160;Acuerdo 658 de 2016 del 21 de diciembre de 2026 en su&#160;<b><i>Art\u00edculo</i></b><i>&#160;<b>66. Planta de Empleos</b></i>, acuerdo que puede ser consultado en el enlace&#58; &#160;</span><a href=\"https&#58;//www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=67734\" title=\"https&#58;//www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=67734\"><span style=\"font-family&#58;Aptos, sans-serif;color&#58;rgb(70, 120, 134);\">https&#58;//www.alcaldiabogota.gov.co/sisjur/normas/Norma1.jsp?i=67734</span></a><span style=\"font-family&#58;Aptos, sans-serif;color&#58;rgb(33, 33, 33);\">&#160;.</span><span lang=\"ES-TRAD\"></span></p><br>", "body": "", "code": "", "categoryId": "3e18bbee8f90", "tags": [], "createdAt": 1780184730303, "updatedAt": 1780184730303, "versions": [], "favorite": false, "usageCount": 0}, {"id": "30f574d5d7af", "title": "QUERY A Copilot", "html": "<div><span style=\"font-family&#58;arial;font-size&#58;12pt;\">Primero Extrae todo el texto con formato para WORD, el estilo normal es con letra Arial No. 12 , a la izquierda , con interlineado 1,5 , Sangria especial a primera linea en 1.25cm para el estilo normal. Las margenes del documento deben ser 2 cm para todos los lados. Crea el documento en word para su descarga.</span></div><div><span style=\"font-family&#58;arial;font-size&#58;12pt;\"><p>============================================================</p><div style=\"margin-top&#58;16px;margin-bottom&#58;16px;\"><span><div><span>Act\u00faa como asistente de edici\u00f3n de documentos oficiales en Microsoft Word 2024, conforme a pr\u00e1cticas administrativas de entidades p\u00fablicas colombianas.<br></span><div><br></div><div>Objetivo&#58;<br></div><div>Convertir un archivo PDF en un documento oficial editable en Word, manteniendo fidelidad total al contenido original y aplicando formato institucional.<br></div><div><br></div><div>Instrucciones&#58;<br></div><div>1. Lee el archivo PDF proporcionado.<br></div><div>2. Extrae la totalidad del texto del documento, sin resumir, modificar ni omitir informaci\u00f3n, respetando estrictamente el orden original del contenido.<br></div><div><br></div><div>Configuraci\u00f3n del documento&#58;<br></div><div>3. Crea un nuevo documento de Microsoft Word (.docx).<br></div><div>4. Configura los m\u00e1rgenes del documento en 3 cm en todos sus lados (superior, inferior, izquierdo y derecho).<br></div><div><br></div><div>Formato institucional del texto&#58;<br></div><div>5. Modifica el estilo Normal con las siguientes caracter\u00edsticas&#58;<br></div><div>&#160; &#160;- Fuente&#58; Arial<br></div><div>&#160; &#160;- Tama\u00f1o de letra&#58; 12 puntos<br></div><div>&#160; &#160;- Alineaci\u00f3n del texto&#58; izquierda<br></div><div>&#160; &#160;- Interlineado&#58; 1,5 l\u00edneas<br></div><div>&#160; &#160;- Sangr\u00eda especial&#58; primera l\u00ednea de 1,25 cm<br></div><div>6. Aplica el estilo Normal a todo el texto extra\u00eddo del PDF, asegurando uniformidad en el documento.<br></div><span>7. Genera el archivo final en formato Word (.docx), con el nombre &quot;DP XXXX-2026&quot; listo para su descarga y uso oficial.</span><br></div></span></div></span><span style=\"font-family&#58;arial;font-size&#58;16px;background-color&#58;rgb(255, 255, 255);display&#58;inline !important;\">============================================================</span><br></div>", "body": "", "code": "", "categoryId": "775db7e208e0", "tags": [], "createdAt": 1780184730304, "updatedAt": 1780184730304, "versions": [], "favorite": false, "usageCount": 0}, {"id": "ca4687334ef0", "title": "FIRMEZA LISTAS DE ELEIGBLES", "html": "<p style=\"margin&#58;0cm 0cm 10pt;text-indent&#58;35.45pt;line-height&#58;150%;font-size&#58;12pt;font-family&#58;Arial, sans-serif;\"><b></b></p><p style=\"margin&#58;0cm 0cm 8pt;text-indent&#58;35.45pt;line-height&#58;150%;font-size&#58;12pt;font-family&#58;Arial, sans-serif;\"><b>RESPUESTA&#58;</b> Nos permitirnos indicarle que, una vez\nsurtidas todas las fases del <i>Proceso de Selecci\u00f3n No. 1358 de 2020 \u2013\nContralor\u00edas Territoriales</i>, se produjo la firmeza de las listas de\nelegibles en la modalidad de ascenso el d\u00eda diez (10) de marzo de 2026,\nconforme al Radicado No. 2026RS045498 de la Comisi\u00f3n Nacional del Servicio Civil\n(CNSC), as\u00ed como la firmeza de las listas de elegibles en la modalidad abierta\nel d\u00eda seis (06) de abril de 2026, mediante Radicado No. 2026RS061437 de la\nCNSC, informaci\u00f3n que puede ser verificada en el BNLE , con el n\u00famero de OPEC en\nmenci\u00f3n.</p><p style=\"margin&#58;0cm 0cm 8pt;text-indent&#58;35.45pt;line-height&#58;150%;font-size&#58;12pt;font-family&#58;Arial, sans-serif;\">En ese sentido, la Direcci\u00f3n de Talento Humano informa que,\na partir de la firmeza de las listas, se dio inicio al procedimiento\nadministrativo de uso de listas adelantando la solicitud de documentos a las\npersonas en orden meritorio, con el \u00e1nimo de efectuar el proceso del respectivo\nnombramiento en per\u00edodo de prueba, en estricto cumplimiento del orden de m\u00e9rito\nobligatorio establecido en las listas de elegibles vigentes.</p><br>", "body": "", "code": "", "categoryId": "", "tags": [], "createdAt": 1780184730305, "updatedAt": 1780184730305, "versions": [], "favorite": false, "usageCount": 0}, {"id": "094c8803cf8e", "title": "CECAT", "html": "<span style=\"font-family&#58;arial;font-size&#58;12pt;\"><b>RESPUESTA&#58;</b></span><span style=\"font-family&#58;arial;font-size&#58;12pt;\">&#160;Nos permitimos dar respuesta en los siguientes t\u00e9rminos , por cual y atendiendo su solicitud la DIRECCI\u00d3N DE TALENTO HUMANO de la Contralor\u00eda de Bogot\u00e1 D.C. , informa que a fecha de corte a 01 de mayo de 2026 se registran para el PROFESIONAL UNIVERSITARIO C\u00d3DIGO 219 GRADO 01, una (1) vacante definitivas generadas despu\u00e9s del 16 de marzo de 2020, por lo cual no fueron objeto de reporte en el Proceso de Selecci\u00f3n 1358 de 2020 \u2013 Contralor\u00edas Territoriales y fueron reportadas a la Comisi\u00f3n Especial de Contralor\u00edas Territoriales \u2013 CECACT.</span><br>", "body": "", "code": "", "categoryId": "ae02a75a0703", "tags": [], "createdAt": 1780184730306, "updatedAt": 1780184730306, "versions": [], "favorite": false, "usageCount": 0}, {"id": "852e8c613fae", "title": "Manual de Funciones", "html": "<p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><span style=\"font-family&#58;&quot;Arial&quot;,sans-serif;\"><b style=\"\">RESPUESTA&#58;</b> Que de acuerdo a su consulta nos permitimos indicar que la ubicaci\u00f3n del\ncargo <b style=\"\">XXXXXXX C\u00d3DIGO XXX GRADO XX </b>que<b style=\"\">&#160;</b>pertenece a la planta global\nde la Contralor\u00eda de Bogot\u00e1 D.C , y su ubicaci\u00f3n en dependencia se encuentra estipulado en el\nmanual de funciones \u201cPGTH-06 MANUAL DE FUNCIONES Y DE COMPETENCIAS LABORALES\u201d\nel cual puede ser consultado en el enlace&#58;&#160; <a href=\"https&#58;//www.contraloriabogota.gov.co/Listado_Maestro/pgth-06-manual-de-funciones-y-de-competencias-laborales\" style=\"\">https&#58;//www.contraloriabogota.gov.co/Listado_Maestro/pgth-06-manual-de-funciones-y-de-competencias-laborales</a></span></p><p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><span style=\"font-family&#58;&quot;Arial&quot;,sans-serif;\">&#160;</span></p><p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><span style=\"font-family&#58;&quot;Arial&quot;,sans-serif;\">Por lo cual se informa que el cargo puede ser desempe\u00f1ado en las sedes\nde la Contralor\u00eda de Bogot\u00e1 D.C&#58;</span></p><p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><span style=\"font-family&#58;&quot;Arial&quot;,sans-serif;\">&#160;</span></p><p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><span style=\"font-family&#58;&quot;Arial&quot;,sans-serif;\"><span style=\"font-family&#58;Arial, sans-serif;background-color&#58;rgb(255, 255, 255);display&#58;inline !important;\">1. Sede de Principal</span><br></span></p><p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><span style=\"font-family&#58;&quot;Arial&quot;,sans-serif;\"><br></span></p><p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><span style=\"font-family&#58;&quot;Arial&quot;,sans-serif;\">Direcci\u00f3n&#58; Carrera 32A No. 26A \u2013 10 (Edificio Loter\u00eda de Bogot\u00e1)</span></p><p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><span style=\"font-family&#58;&quot;Arial&quot;,sans-serif;\">Horario&#58; Lunes a viernes, 8&#58;00 a.m. a 5&#58;00 p.m.</span></p><p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><span style=\"font-family&#58;&quot;Arial&quot;,sans-serif;\">Tel\u00e9fono&#58; (601) 335 8888</span></p><p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><span style=\"font-family&#58;&quot;Arial&quot;,sans-serif;\">&#160;</span></p><p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><span style=\"font-family&#58;&quot;Arial&quot;,sans-serif;\">2. Sede de Participaci\u00f3n Ciudadana&#58;</span></p><p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><span style=\"font-family&#58;&quot;Arial&quot;,sans-serif;\">&#160;</span></p><p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><span style=\"font-family&#58;&quot;Arial&quot;,sans-serif;\">Direcci\u00f3n&#58; Calle 27A No. 32A \u2013 45</span></p><p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><span style=\"font-family&#58;&quot;Arial&quot;,sans-serif;\">Horario&#58; Lunes a viernes, 8&#58;00 a.m. a 5&#58;00 p.m. </span></p><p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><span style=\"font-family&#58;&quot;Arial&quot;,sans-serif;\"><br></span></p><p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><span style=\"font-family&#58;&quot;Arial&quot;,sans-serif;\"></span></p><p style=\"background-color&#58;rgb(255, 255, 255);margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><span style=\"font-family&#58;Arial, sans-serif;\">3. Sede de Condominio&#58;</span></p><p style=\"background-color&#58;rgb(255, 255, 255);margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><span style=\"font-family&#58;Arial, sans-serif;\">&#160;</span></p><div style=\"background-color&#58;rgb(255, 255, 255);margin&#58;0px 0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\">Sede Condominio<br style=\"box-sizing&#58;border-box;\">Carrera 6 No. 14 - 98 pisos 5 y 6. PBX. 6013358888.<p><span style=\"font-family&#58;Arial, sans-serif;font-size&#58;12pt;\">Horario&#58; Lunes a viernes, 8&#58;00 a.m. a 5&#58;00 p.m.</span></p></div><p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><span style=\"font-family&#58;&quot;Arial&quot;,sans-serif;\">4. Sedes locales (gerencias por localidad)</span></p><p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><span style=\"font-family&#58;&quot;Arial&quot;,sans-serif;\"><br></span></p><p style=\"margin&#58;0cm;font-size&#58;12pt;font-family&#58;Aptos, sans-serif;\"><span style=\"font-family&#58;&quot;Arial&quot;,sans-serif;\">La Contralor\u00eda tiene puntos de atenci\u00f3n en las localidades de Bogot\u00e1&#58;\nUsaqu\u00e9n, Chapinero, Santa Fe, San Crist\u00f3bal, Usme, Tunjuelito, Bosa, Kennedy,\nFontib\u00f3n, Engativ\u00e1, Suba, Barrios Unidos, Teusaquillo, Los M\u00e1rtires, Antonio\nNari\u00f1o, Puente Aranda, La Candelaria, Rafael Uribe Uribe, Ciudad Bol\u00edvar y\nSumapaz. Igualmente puede consultar las sedes de las localidades desde el\nenlace&#58;&#160;<a href=\"https&#58;//www.contraloriabogota.gov.co/sedes-de-atencion\">https&#58;//www.contraloriabogota.gov.co/sedes-de-atencion</a></span></p><br>", "body": "", "code": "", "categoryId": "73dd87bed28b", "tags": [], "createdAt": 1780184730307, "updatedAt": 1780184730307, "versions": [], "favorite": false, "usageCount": 0}, {"id": "95989e75d847", "title": "Manual de Funciones", "html": "<a href=\"https&#58;//www.contraloriabogota.gov.co/Listado_Maestro/pgth-06-manual-de-funciones-y-de-competencias-laborales\"></a></div><div style=\"font-family&#58;Calibri, Arial, Helvetica, sans-serif;font-size&#58;11pt;color&#58;rgb(50, 49, 48);background-color&#58;transparent;\"><div style=\"margin-top&#58;14.6667px;margin-bottom&#58;14.6667px;\"><h2 style=\"margin-top&#58;0px;margin-bottom&#58;0.5rem;font-weight&#58;500;line-height&#58;2.5rem;font-size&#58;2rem;font-family&#58;Montserrat-SemiBold;color&#58;rgb(0, 54, 87);background-color&#58;rgb(255, 255, 255);\"><span style=\"font-family&#58;arial;font-size&#58;12pt;line-height&#58;normal;color&#58;rgb(0, 0, 0);\"></span></h2></div><b><span lang=\"es-419\" style=\"font-size&#58;12.0pt;line-height&#58;115%;font-family&#58;&quot;Arial&quot;,sans-serif;\">RESPUESTA&#58;</span></b><span lang=\"es-419\" style=\"font-size&#58;12.0pt;line-height&#58;115%;font-family&#58;&quot;Arial&quot;,sans-serif;\"> Le\ninformamos que el <b><i>Manual Espec\u00edfico de Funciones y Competencias Laborales</i></b>\n- <b>PGTH-06 MANUAL DE FUNCIONES Y DE COMPETENCIAS LABORALES </b>puede ser\nconsultado en siguiente enlace&#58;\n<a href=\"https&#58;//www.contraloriabogota.gov.co/Listado_Maestro/pgth-06-manual-de-funciones-y-de-competencias-laborales\">https&#58;//www.contraloriabogota.gov.co/Listado_Maestro/pgth-06-manual-de-funciones-y-de-competencias-laborales</a></span><br>", "body": "", "code": "", "categoryId": "73dd87bed28b", "tags": [], "createdAt": 1780184730308, "updatedAt": 1780184730308, "versions": [], "favorite": false, "usageCount": 0}]};
+
+const STORE         = 'kb_dpc_v3';
+const TAG_STORE     = 'kb_tags_v3';
+const DEFAULTS_STORE= 'kb_tag_defaults_v1';
+const CARGOS_STORE  = 'kb_cargos_v1';
+const THEME_KEY     = 'kb_theme';
+
+// ══════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════
+let state       = loadState();
+let tags        = loadTags();
+let tagDefaults = loadDefaults();
+let cargos      = loadCargos();
+
+let filterCat = 'all', filterTag = null;
+let editingId = null, pendingDelId = null, detailId = null;
+let currentTags = [];
+let quill = null;
+
+function loadState() {
+  try {
+    const r = localStorage.getItem(STORE);
+    if (r) {
+      const d = JSON.parse(r);
+      d.entries.forEach(e => {
+        e.versions  = e.versions  || [];
+        e.favorite  = e.favorite  ?? false;
+        e.usageCount= e.usageCount|| 0;
+        e.html      = e.html      || '';
+        e.body      = e.body      || '';
+      });
+      return d;
+    }
+  } catch(e) {}
+  SEED_DATA.entries.forEach(e => {
+    e.versions = []; e.favorite = false; e.usageCount = 0;
+  });
+  return SEED_DATA;
+}
+
+function loadTags() {
+  try {
+    const r = localStorage.getItem(TAG_STORE);
+    if (r) return JSON.parse(r);
+  } catch(e) {}
+  return [...DEFAULT_TAGS];
+}
+
+function loadDefaults() {
+  try {
+    const r = localStorage.getItem(DEFAULTS_STORE);
+    if (r) return JSON.parse(r);
+  } catch(e) {}
+  return {};  // { TAG_NAME: value, ..., __cargoIndex: 0 }
+}
+
+function loadCargos() {
+  try {
+    const r = localStorage.getItem(CARGOS_STORE);
+    if (r) return JSON.parse(r);
+  } catch(e) {}
+  return [...CARGOS]; // CARGOS = seed array defined at top
+}
+
+function save()         { localStorage.setItem(STORE,          JSON.stringify(state)); }
+function saveDefaults()  { localStorage.setItem(DEFAULTS_STORE, JSON.stringify(tagDefaults)); }
+function saveCargos()    { localStorage.setItem(CARGOS_STORE,   JSON.stringify(cargos)); }
+function saveTags() { localStorage.setItem(TAG_STORE, JSON.stringify(tags));  }
+function uid()      { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function getCatMap(){ return Object.fromEntries(state.categories.map(c=>[c.id,c])); }
+function esc(s)     { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+const CAT_COLORS = ['#6366f1','#3b82f6','#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#84cc16'];
+
+// ══════════════════════════════════════════════════════════════
+// THEME
+// ══════════════════════════════════════════════════════════════
+function toggleTheme() {
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', dark ? 'light' : 'dark');
+  document.getElementById('themeBtn').textContent = dark ? '☾' : '☀';
+  localStorage.setItem(THEME_KEY, dark ? 'light' : 'dark');
+}
+(function(){
+  const t = localStorage.getItem(THEME_KEY) || 'light';
+  document.documentElement.setAttribute('data-theme', t);
+  window.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('themeBtn').textContent = t === 'dark' ? '☀' : '☾';
+  });
+})();
+
+// ══════════════════════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════════════════════
+function renderAll() { renderSidebar(); renderStats(); renderTagFilters(); renderEntries(); }
+
+function renderSidebar() {
+  const total = state.entries.length;
+  const favs  = state.entries.filter(e => e.favorite).length;
+  let html = `<div class="nav-label">Vista</div>
+    <button class="nav-item ${filterCat==='all' ?'active':''}" onclick="setFilter('all')">
+      <span class="nav-icon">&#9783;</span>Todas las entradas<span class="nav-count">${total}</span>
+    </button>
+    <button class="nav-item ${filterCat==='favs'?'active':''}" onclick="setFilter('favs')">
+      <span class="nav-icon">&#9733;</span>Favoritos<span class="nav-count">${favs}</span>
+    </button>
+    <button class="nav-item ${filterCat==='top' ?'active':''}" onclick="setFilter('top')">
+      <span class="nav-icon">&#128200;</span>Más usadas<span class="nav-count">${state.entries.filter(e=>e.usageCount>0).length}</span>
+    </button>
+    <div class="nav-label" style="margin-top:4px">Categorías</div>`;
+  for (const cat of state.categories) {
+    const cnt = state.entries.filter(e=>e.categoryId===cat.id).length;
+    html += `<button class="nav-item ${filterCat===cat.id?'active':''}" onclick="setFilter('${cat.id}')">
+      <span style="font-size:14px;width:18px;text-align:center;flex-shrink:0">${cat.icon||defaultIcon(cat.name)}</span>${esc(cat.name)}<span class="nav-count">${cnt}</span>
+    </button>`;
+  }
+  html += `<button class="nav-item" onclick="openCatModal()" style="opacity:.5;margin-top:2px">
+    <span class="nav-icon">+</span>Nueva categoría
+  </button>`;
+  document.getElementById('sidebarNav').innerHTML = html;
+}
+
+function renderStats() {
+  const total  = state.entries.length;
+  const cats   = state.categories.length;
+  const favs   = state.entries.filter(e=>e.favorite).length;
+  const copies = state.entries.reduce((s,e)=>s+(e.usageCount||0),0);
+  document.getElementById('statsBar').innerHTML = `
+    <div class="stat-card"><div class="stat-icon" style="background:#eff6ff">&#128218;</div><div><div class="stat-val">${total}</div><div class="stat-lbl">Respuestas</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#f0fdf4">&#128193;</div><div><div class="stat-val">${cats}</div><div class="stat-lbl">Categorías</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#fefce8">&#9733;</div><div><div class="stat-val">${favs}</div><div class="stat-lbl">Favoritos</div></div></div>
+    <div class="stat-card"><div class="stat-icon" style="background:#f5f3ff">&#128203;</div><div><div class="stat-val">${copies}</div><div class="stat-lbl">Veces copiada</div></div></div>`;
+}
+
+function renderTagFilters() {
+  const tagNames = [...new Set(state.entries.flatMap(e=>e.tags||[]))].sort();
+  document.getElementById('tagFilters').innerHTML = tagNames.map(t =>
+    `<span class="tag-chip ${filterTag===t?'active':''}" onclick="toggleTag('${esc(t)}')">#${esc(t)}</span>`
+  ).join('');
+}
+
+function stripHtml(h) { return h ? h.replace(/<[^>]+>/g,' ').replace(/&[a-z#0-9]+;/gi,' ').replace(/\s+/g,' ') : ''; }
+
+function renderEntries() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  let entries = [...state.entries];
+  if      (filterCat==='favs') entries = entries.filter(e=>e.favorite);
+  else if (filterCat==='top')  entries = entries.sort((a,b)=>(b.usageCount||0)-(a.usageCount||0)).filter(e=>e.usageCount>0);
+  else if (filterCat!=='all')  entries = entries.filter(e=>e.categoryId===filterCat);
+  if (filterTag) entries = entries.filter(e=>(e.tags||[]).includes(filterTag));
+  if (q) entries = entries.filter(e=>
+    e.title.toLowerCase().includes(q) ||
+    (e.body||'').toLowerCase().includes(q) ||
+    stripHtml(e.html||'').toLowerCase().includes(q) ||
+    (e.tags||[]).some(t=>t.toLowerCase().includes(q))
+  );
+  if (filterCat!=='top') entries.sort((a,b)=>b.updatedAt-a.updatedAt);
+
+  const catMap = getCatMap();
+  const titles = {all:'Todas las entradas',favs:'⭐ Favoritos',top:'📈 Más usadas'};
+  const title = titles[filterCat]||(catMap[filterCat]?.name||'');
+  document.getElementById('viewTitle').innerHTML = title+(q?` &mdash; <span style="color:var(--text2);font-size:13px">"${esc(q)}"</span>`:'');
+
+  const grid = document.getElementById('cardsGrid');
+  if (!entries.length) {
+    grid.innerHTML = `<div class="empty-state"><div class="empty-icon">&#128269;</div><div class="empty-title">Sin resultados</div><div class="empty-sub">${q?'Prueba con otra búsqueda':'No hay entradas aquí aún'}</div></div>`;
+    return;
+  }
+  grid.innerHTML = entries.map(e => {
+    const cat    = catMap[e.categoryId];
+    const badge  = cat?`<span class="cat-badge" style="background:${cat.color}18;color:${cat.color}">${cat.icon||defaultIcon(cat.name)} ${esc(cat.name)}</span>`:'';
+    const eTags  = (e.tags||[]).slice(0,2).map(t=>`<span class="entry-tag">#${esc(t)}</span>`).join('');
+    const date   = new Date(e.updatedAt).toLocaleDateString('es',{day:'2-digit',month:'short',year:'numeric'});
+    const preview= stripHtml(e.html||e.body||'').trim().slice(0,100);
+    const hasEtiq= /\{\{[A-Z_]+\}\}/.test(e.html||e.body||'');
+    const usage  = e.usageCount>0?`<span class="usage-badge">&#128203; ${e.usageCount}</span>`:'';
+    const hist   = (e.versions||[]).length?`<span style="font-size:10px;color:var(--text3)">&#128336; ${e.versions.length}</span>`:'';
+    const etiqBadge = hasEtiq?`<span style="font-size:10px;background:var(--tag-bg);color:var(--tag-color);border:1px solid var(--tag-border);border-radius:4px;padding:1px 5px;font-weight:600">&#9002; etiquetas</span>`:'';
+    return `<div class="card" onclick="openDetail('${e.id}')">
+      <div class="card-head">
+        <div class="card-title">${esc(e.title)}</div>
+        <div class="card-actions">
+          <button class="fav-btn ${e.favorite?'active':''}" onclick="event.stopPropagation();quickFav('${e.id}')" title="Favorito">${e.favorite?'&#9733;':'&#9734;'}</button>
+          <div class="card-menu" onclick="event.stopPropagation()">
+            <button class="card-menu-btn" onclick="toggleDrop('dd_${e.id}')">&#8942;</button>
+            <div class="dropdown" id="dd_${e.id}">
+              <button onclick="openDetail('${e.id}')">&#128203; Ver y copiar</button>
+              <button onclick="openEntryModal('${e.id}')">&#9998; Editar</button>
+              <button onclick="openHistoryModalFor('${e.id}')">&#128336; Historial</button>
+              <div class="dd-sep"></div>
+              <button class="danger" onclick="confirmDel('${e.id}')">&#128465; Eliminar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      ${preview?`<div class="card-preview">${esc(preview)}${preview.length>=100?'…':''}</div>`:''}
+      <div class="card-footer">${badge}${eTags}${etiqBadge}${usage}${hist}<span class="card-date">${date}</span></div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+// FILTERS
+// ══════════════════════════════════════════════════════════════
+function setFilter(id) { filterCat=id; filterTag=null; renderAll(); }
+function toggleTag(t)  { filterTag = filterTag===t?null:t; renderAll(); }
+
+// ══════════════════════════════════════════════════════════════
+// FAVORITE
+// ══════════════════════════════════════════════════════════════
+function quickFav(id) {
+  const e=state.entries.find(x=>x.id===id);
+  if(e){e.favorite=!e.favorite;save();renderAll();}
+}
+function toggleFav() {
+  if(!detailId)return;
+  quickFav(detailId);
+  const e=state.entries.find(x=>x.id===detailId);
+  if(e){const b=document.getElementById('dFavBtn');b.innerHTML=e.favorite?'&#9733;':'&#9734;';b.style.color=e.favorite?'var(--gold)':'';}
+}
+
+// ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
+// HTML SOURCE TOGGLE
+// ══════════════════════════════════════════════════════════════
+let inSourceMode = false;
+function toggleHtmlSource() {
+  inSourceMode = !inSourceMode;
+  const qEl  = document.getElementById('quillEditor');
+  const src  = document.getElementById('fHtmlSource');
+  const row  = document.getElementById('tagInsertRow');
+  const btn  = document.getElementById('htmlToggleBtn');
+  if (inSourceMode) {
+    // Sync Quill → textarea before switching
+    src.value = quill ? quill.root.innerHTML : '';
+    qEl.style.display  = 'none';
+    row.style.display  = 'none';
+    src.style.display  = '';
+    btn.style.background = 'var(--tag-bg)';
+    btn.style.color      = 'var(--tag-color)';
+    btn.style.borderColor= 'var(--tag-border)';
+    src.focus();
+  } else {
+    // Sync textarea → Quill before switching
+    const html = src.value;
+    qEl.style.display  = '';
+    row.style.display  = '';
+    src.style.display  = 'none';
+    btn.style.background = '';
+    btn.style.color      = '';
+    btn.style.borderColor= '';
+    if (quill) {
+      quill.setContents([]);
+      try { quill.clipboard.dangerouslyPasteHTML(0, html); }
+      catch(e) { quill.root.innerHTML = html; }
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// ENTRY MODAL (Quill)
+// ══════════════════════════════════════════════════════════════
+function buildInsertButtons() {
+  const wrap = document.getElementById('tagInsertButtons');
+  const userTags = tags.filter(t => !['auto_cargo'].includes(t.type));
+  wrap.innerHTML = userTags.slice(0,8).map(t =>
+    `<button type="button" class="btn btn-outline btn-xs" onclick="insertTag('{{${t.name}}}')"
+      style="font-family:monospace;color:var(--tag-color);border-color:var(--tag-border);background:var(--tag-bg)"
+      title="${esc(t.label)}">{{${esc(t.name)}}}</button>`
+  ).join('') +
+  (userTags.length>8 ? `<button type="button" class="btn btn-ghost btn-xs" onclick="openTagManager()">+${userTags.length-8} más</button>` : '');
+}
+
+// ══════════════════════════════════════════════════════════════
+// NÚMERO EN LETRAS (español)
+// ══════════════════════════════════════════════════════════════
+function numToWords(n) {
+  n = parseInt(n);
+  if (isNaN(n) || n < 0) return '';
+  if (n === 0) return 'cero';
+  const u  = ['','uno','dos','tres','cuatro','cinco','seis','siete','ocho','nueve',
+               'diez','once','doce','trece','catorce','quince','dieciséis','diecisiete',
+               'dieciocho','diecinueve'];
+  const d  = ['','','veinte','treinta','cuarenta','cincuenta','sesenta','setenta','ochenta','noventa'];
+  const c  = ['','cien','doscientos','trescientos','cuatrocientos','quinientos',
+               'seiscientos','setecientos','ochocientos','novecientos'];
+
+  function _lt100(n) {
+    if (n < 20) return u[n];
+    const t = Math.floor(n/10), r = n%10;
+    if (t === 2 && r > 0) return 'veinti' + u[r];
+    return d[t] + (r ? ' y ' + u[r] : '');
+  }
+  function _lt1000(n) {
+    if (n < 100) return _lt100(n);
+    const h = Math.floor(n/100), r = n%100;
+    if (n === 100) return 'cien';
+    return c[h] + (r ? ' ' + _lt100(r) : '');
+  }
+  function _lt1M(n) {
+    if (n < 1000) return _lt1000(n);
+    const mil = Math.floor(n/1000), r = n%1000;
+    const pref = mil === 1 ? 'mil' : _lt1000(mil) + ' mil';
+    return pref + (r ? ' ' + _lt1000(r) : '');
+  }
+  if (n < 1000000) return _lt1M(n);
+  const mill = Math.floor(n/1000000), r = n%1000000;
+  const pref = mill === 1 ? 'un millón' : _lt1M(mill) + ' millones';
+  return pref + (r ? ' ' + _lt1M(r) : '');
+}
+
+let numConverterVisible = false;
+
+function toggleNumConverter() {
+  numConverterVisible = !numConverterVisible;
+  const box = document.getElementById('numConverterBox');
+  box.style.display = numConverterVisible ? '' : 'none';
+  if (numConverterVisible) {
+    document.getElementById('numInput').focus();
+    updateNumResult();
+  }
+}
+
+function updateNumResult() {
+  const val = document.getElementById('numInput').value.trim();
+  const n = parseInt(val);
+  const resEl = document.getElementById('numResult');
+  const btnsEl = document.getElementById('numInsertBtns');
+  if (!val || isNaN(n) || n < 0) {
+    resEl.innerHTML = '<span style="color:var(--text3)">Escribe un número</span>';
+    btnsEl.innerHTML = '';
+    return;
+  }
+  const letras = numToWords(n);
+  const cap = letras.charAt(0).toUpperCase() + letras.slice(1);
+  // Formatos comunes en documentos oficiales
+  const formatos = [
+    { label: 'letras (número)', val: `${letras} (${n})` },
+    { label: 'Letras (número)', val: `${cap} (${n})` },
+    { label: 'solo letras',     val: letras },
+    { label: 'solo número',     val: String(n) },
+  ];
+  resEl.innerHTML = `<strong style="color:var(--text)">${cap}</strong> <span style="color:var(--text3)">(${n})</span>`;
+  btnsEl.innerHTML = formatos.map(f =>
+    `<button type="button" class="btn btn-outline btn-xs" onclick="insertNumFormat('${f.val.replace(/'/g,"\\'")}')">
+      ${esc(f.label)}
+    </button>`
+  ).join('');
+}
+
+function insertNumFormat(text) {
+  if (quill) {
+    const range = quill.getSelection(true);
+    quill.insertText(range ? range.index : quill.getLength(), text, 'user');
+    toast(`"${text}" insertado`);
+  } else {
+    navigator.clipboard.writeText(text).then(() => toast(`"${text}" copiado al portapapeles`));
+  }
+}
+
+function insertTag(text) {
+  if(!quill)return;
+  const range=quill.getSelection(true);
+  quill.insertText(range?range.index:quill.getLength(),text,'user');
+}
+
+function openEntryModal(id=null) {
+  closeAllDrops();
+  editingId=id; currentTags=[];
+  // Reset source mode
+  inSourceMode=false;
+  const _src=document.getElementById('fHtmlSource');
+  const _qEl=document.getElementById('quillEditor');
+  const _row=document.getElementById('tagInsertRow');
+  const _btn=document.getElementById('htmlToggleBtn');
+  if(_src){_src.style.display='none';}
+  if(_qEl){_qEl.style.display='';}
+  if(_row){_row.style.display='';}
+  if(_btn){_btn.style.background='';_btn.style.color='';_btn.style.borderColor='';}
+  document.getElementById('entryModalTitle').textContent=id?'Editar entrada':'Nueva entrada';
+  document.getElementById('fVersionNote').value='';
+
+  const sel=document.getElementById('fCategory');
+  sel.innerHTML=`<option value="">Sin categoría</option>`+state.categories.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');
+
+  if(!quill){
+    quill=new Quill('#quillEditor',{
+      theme:'snow',
+      modules:{toolbar:[
+        ['bold','italic','underline'],
+        [{'list':'ordered'},{'list':'bullet'}],
+        [{'indent':'-1'},{'indent':'+1'}],
+        ['link'],[{'align':[]}],['clean']
+      ]}
+    });
+  }
+
+  if(id){
+    const e=state.entries.find(x=>x.id===id);
+    if(e){
+      document.getElementById('fTitle').value=e.title;
+      document.getElementById('fCode').value=e.code||'';
+      sel.value=e.categoryId||'';
+      currentTags=[...(e.tags||[])];
+      const htmlContent=e.html||(e.body?`<p>${e.body}</p>`:'');
+      document.getElementById('fHtmlSource').value=htmlContent;
+      quill.setContents([]);
+      try{ quill.clipboard.dangerouslyPasteHTML(0, htmlContent); }
+      catch(ex){ quill.root.innerHTML=htmlContent; }
+    }
+  } else {
+    document.getElementById('fTitle').value='';
+    document.getElementById('fCode').value='';
+    quill.setText('');
+    document.getElementById('fHtmlSource').value='';
+    if(!['all','favs','top'].includes(filterCat)) sel.value=filterCat;
+  }
+
+  buildInsertButtons();
+  renderTagPills();
+  openModal('entryOverlay');
+  setTimeout(()=>document.getElementById('fTitle').focus(),60);
+}
+
+function renderTagPills() {
+  const wrap=document.getElementById('tagsWrap'),inp=document.getElementById('tagInput');
+  wrap.innerHTML='';
+  currentTags.forEach((t,i)=>{
+    const p=document.createElement('span');p.className='tag-pill';
+    p.innerHTML=`${esc(t)} <button onclick="removeTag(${i})" type="button">&#215;</button>`;
+    wrap.appendChild(p);
+  });
+  wrap.appendChild(inp); inp.value='';
+}
+function handleTagInput(e){
+  const inp=document.getElementById('tagInput');
+  if(e.key==='Enter'||e.key===','){e.preventDefault();const v=inp.value.trim().replace(/,/g,'');if(v&&!currentTags.includes(v)){currentTags.push(v);renderTagPills();}else inp.value='';}
+  else if(e.key==='Backspace'&&!inp.value&&currentTags.length){currentTags.pop();renderTagPills();}
+}
+function removeTag(i){currentTags.splice(i,1);renderTagPills();}
+
+function saveEntry(){
+  const title=document.getElementById('fTitle').value.trim();
+  if(!title){document.getElementById('fTitle').focus();return;}
+  const inp=document.getElementById('tagInput');
+  if(inp.value.trim()&&!currentTags.includes(inp.value.trim()))currentTags.push(inp.value.trim());
+  const srcEl=document.getElementById('fHtmlSource');
+  const inSourceMode=srcEl&&srcEl.style.display!=='none';
+  const newHtml=inSourceMode?srcEl.value:(quill?quill.root.innerHTML:'');
+  const vNote=document.getElementById('fVersionNote').value.trim();
+  const existing=editingId?state.entries.find(x=>x.id===editingId):null;
+  const versions=existing?[...(existing.versions||[])]:[];
+  if(existing&&(existing.html||existing.body)){
+    versions.push({html:existing.html||'',body:existing.body||'',code:existing.code||'',savedAt:existing.updatedAt,note:vNote||'Versión anterior'});
+    if(versions.length>20)versions.shift();
+  }
+  const entry={
+    id:editingId||uid(),title,html:newHtml,body:'',
+    code:document.getElementById('fCode').value,
+    categoryId:document.getElementById('fCategory').value,
+    tags:[...currentTags],
+    favorite:existing?existing.favorite:false,
+    usageCount:existing?existing.usageCount||0:0,
+    versions,updatedAt:Date.now(),
+    createdAt:existing?existing.createdAt:Date.now()
+  };
+  if(editingId){const idx=state.entries.findIndex(x=>x.id===editingId);if(idx>-1)state.entries[idx]=entry;}
+  else state.entries.unshift(entry);
+  save();closeModal('entryOverlay');renderAll();toast('Entrada guardada ✓');
+}
+
+// ══════════════════════════════════════════════════════════════
+// DETAIL
+// ══════════════════════════════════════════════════════════════
+function highlightTags(html) {
+  return html.replace(/\{\{([A-Z_0-9]+)\}\}/g, (m,name) => {
+    const tag = tags.find(t => t.name===name);
+    const label = tag ? tag.label : name;
+    return `<span class="etiqueta" title="${esc(label)}">{{${esc(name)}}}</span>`;
+  });
+}
+
+function openDetail(id){
+  const e=state.entries.find(x=>x.id===id);if(!e)return;
+  detailId=id;
+  const cat=state.categories.find(c=>c.id===e.categoryId);
+  document.getElementById('dTitle').textContent=e.title;
+  document.getElementById('dCatBadge').innerHTML=cat?`<span class="cat-badge" style="background:${cat.color}18;color:${cat.color};font-size:11px">${cat.icon||defaultIcon(cat.name)} ${esc(cat.name)}</span>`:'';
+  const fb=document.getElementById('dFavBtn');
+  fb.innerHTML=e.favorite?'&#9733;':'&#9734;';fb.style.color=e.favorite?'var(--gold)':'';
+  const raw=e.html||(e.body?`<p>${esc(e.body).replace(/\n/g,'<br>')}</p>`:'<p style="color:var(--text3)">Sin contenido.</p>');
+  document.getElementById('dHtmlContent').innerHTML=highlightTags(raw);
+  if(e.code){document.getElementById('dCode').textContent=e.code;document.getElementById('dCodeWrap').style.display='';}
+  else document.getElementById('dCodeWrap').style.display='none';
+  document.getElementById('dTags').innerHTML=(e.tags||[]).map(t=>`<span class="entry-tag">#${esc(t)}</span>`).join('');
+  const d=new Date(e.updatedAt);
+  document.getElementById('dDate').textContent=`Actualizado: ${d.toLocaleDateString('es',{day:'2-digit',month:'long',year:'numeric'})} ${d.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'})}`+((e.versions||[]).length?` · ${e.versions.length} versión(es)`:'');
+  document.getElementById('dUsageLabel').textContent=e.usageCount>0?`Copiada ${e.usageCount} vez${e.usageCount>1?'es':''}`:'';
+  document.getElementById('dEditBtn').onclick=()=>{closeModal('detailOverlay');openEntryModal(id);};
+  openModal('detailOverlay');
+}
+
+// ══════════════════════════════════════════════════════════════
+// COPY RICH TEXT
+// ══════════════════════════════════════════════════════════════
+async function copyRichText(){
+  const e=state.entries.find(x=>x.id===detailId);if(!e)return;
+  e.usageCount=(e.usageCount||0)+1;save();
+  document.getElementById('dUsageLabel').textContent=`Copiada ${e.usageCount} vez${e.usageCount>1?'es':''}`;
+  renderStats();
+  const raw=e.html||(e.body?`<p>${e.body}</p>`:'');
+  // Remove {{TAG}} markers from copy (send clean text)
+  const cleaned=raw.replace(/\{\{[A-Z_0-9]+\}\}/g,'[PENDIENTE]');
+  await doRichCopy(cleaned);
+}
+async function doRichCopy(htmlContent){
+  const wordHtml=`<html><body style="font-family:Arial,sans-serif;font-size:12pt;line-height:1.5;margin:2cm">${htmlContent}</body></html>`;
+  const plain=htmlContent.replace(/<[^>]+>/g,' ').replace(/&[a-z#0-9]+;/gi,' ').replace(/\s+/g,' ').trim();
+  try{
+    if(window.ClipboardItem){
+      await navigator.clipboard.write([new ClipboardItem({'text/html':new Blob([wordHtml],{type:'text/html'}),'text/plain':new Blob([plain],{type:'text/plain'})})]);
+      toast('&#128203; Copiado con formato — pega en Word u Outlook');
+    } else {
+      await navigator.clipboard.writeText(plain);
+      toast('Copiado como texto plano');
+    }
+  } catch{
+    const ta=document.createElement('textarea');ta.value=plain;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    toast('Copiado como texto plano');
+  }
+}
+function copyPlainCode(){navigator.clipboard.writeText(document.getElementById('dCode').textContent).then(()=>toast('Código copiado'));}
+
+// ══════════════════════════════════════════════════════════════
+// FILL MODAL (etiquetas con cargo inteligente)
+// ══════════════════════════════════════════════════════════════
+let selectedCargo = null;
+
+function openFillModal(){
+  const e=state.entries.find(x=>x.id===detailId);if(!e)return;
+  const raw=e.html||e.body||'';
+  const found=[...new Set([...raw.matchAll(/\{\{([A-Z_0-9]+)\}\}/g)].map(m=>m[1]))];
+  if(!found.length){toast('Esta respuesta no tiene etiquetas {{}} para completar');return;}
+
+  const hasCargoTags=found.some(n=>['CARGO','DENOMINACION','CODIGO','GRADO'].includes(n));
+  let html='';
+
+  // ── Cargo selector (si hay etiquetas de cargo) ──
+  if(hasCargoTags){
+    html+=`<div class="cargo-selector">
+      <div class="cargo-selector-title">&#9868; Seleccionar cargo de la planta</div>
+      <select id="cargoSelect" onchange="onCargoChange()" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:9px 11px;color:var(--text);font-size:13px;outline:none;font-family:inherit">
+        <option value="">— Selecciona un cargo —</option>
+        ${cargos.map((c,i)=>`<option value="${i}">${cargoLabel(c)}</option>`).join('')}
+      </select>
+      <div class="cargo-preview" id="cargoPreview"></div>
+    </div>`;
+  }
+
+  // ── Campos para otras etiquetas (no auto-cargo) ──
+  const nonCargo=found.filter(n=>!['CARGO','DENOMINACION','CODIGO','GRADO'].includes(n));
+  if(nonCargo.length){
+    html+=`<div class="var-fields" id="varFields">`;
+    nonCargo.forEach(name=>{
+      const tagDef=tags.find(t=>t.name===name);
+      const label=tagDef?tagDef.label:name;
+      const ph=tagDef?.placeholder||'';
+      const isDropdown=tagDef?.type==='dropdown';
+      const opts=tagDef?.options||[];
+      html+=`<div class="var-field">
+        <label><code>{{${esc(name)}}}</code> ${esc(label)}</label>`;
+      if(isDropdown&&opts.length){
+        html+=`<select id="vf_${name}" onchange="updateFillPreview()">
+          <option value="">— Seleccionar —</option>
+          ${opts.map(o=>`<option>${esc(o)}</option>`).join('')}
+        </select>`;
+      } else {
+        html+=`<input type="${tagDef?.type==='number'?'number':'text'}" id="vf_${name}" placeholder="${esc(ph)}" oninput="updateFillPreview()">`;
+      }
+      html+=`</div>`;
+    });
+    html+=`</div>`;
+  }
+
+  html+=`<div>
+    <div style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;margin-bottom:5px">Vista previa</div>
+    <div class="preview-box" id="fillPreview">${highlightTags(raw)}</div>
+  </div>`;
+
+  selectedCargo=null;
+  document.getElementById('fillBody').innerHTML=html;
+
+  // ── Pre-llenar con valores por defecto ──
+  // Cargo
+  const defCargoIdx=tagDefaults.__cargoIndex;
+  if(defCargoIdx!==undefined && defCargoIdx!==null){
+    const cargoSel=document.getElementById('cargoSelect');
+    if(cargoSel){ cargoSel.value=defCargoIdx; onCargoChange(); }
+  }
+  // Otros campos
+  Object.keys(tagDefaults).forEach(name=>{
+    if(name==='__cargoIndex') return;
+    const el=document.getElementById('vf_'+name);
+    if(el && !el.value) el.value=tagDefaults[name];
+  });
+  updateFillPreview();
+
+  openModal('fillOverlay');
+}
+
+function onCargoChange(){
+  const sel=document.getElementById('cargoSelect');
+  const idx=parseInt(sel.value);
+  if(isNaN(idx)||idx<0){selectedCargo=null;}
+  else{
+    selectedCargo=cargos[idx];
+    const prev=document.getElementById('cargoPreview');
+    if(prev) prev.innerHTML=`
+      <div class="cargo-chip"><span>Denominación</span>${esc(selectedCargo.denominacion)}</div>
+      <div class="cargo-chip"><span>Código</span>${esc(selectedCargo.codigo)}</div>
+      <div class="cargo-chip"><span>Grado</span>${esc(selectedCargo.grado)}</div>`;
+  }
+  updateFillPreview();
+}
+
+function getFillValues(){
+  const vals={};
+  if(selectedCargo){
+    vals['CARGO']=cargoLabel(selectedCargo);
+    vals['DENOMINACION']=selectedCargo.denominacion;
+    vals['CODIGO']=selectedCargo.codigo;
+    vals['GRADO']=selectedCargo.grado;
+  }
+  document.querySelectorAll('[id^="vf_"]').forEach(el=>{
+    const name=el.id.replace('vf_','');
+    if(el.value.trim()) vals[name]=el.value.trim();
+  });
+  return vals;
+}
+
+function buildFilledHtml(raw, vals){
+  return raw.replace(/\{\{([A-Z_0-9]+)\}\}/g,(m,name)=>{
+    if(vals[name]) return `<span class="filled-val">${esc(vals[name])}</span>`;
+    return `<span class="etiqueta">${m}</span>`;
+  });
+}
+
+function updateFillPreview(){
+  const e=state.entries.find(x=>x.id===detailId);if(!e)return;
+  const raw=e.html||e.body||'';
+  const vals=getFillValues();
+  document.getElementById('fillPreview').innerHTML=buildFilledHtml(raw,vals);
+}
+
+async function copyFilled(){
+  const e=state.entries.find(x=>x.id===detailId);if(!e)return;
+  const raw=e.html||e.body||'';
+  const vals=getFillValues();
+  const filled=raw.replace(/\{\{([A-Z_0-9]+)\}\}/g,(m,name)=>vals[name]?esc(vals[name]):m);
+  e.usageCount=(e.usageCount||0)+1;save();renderStats();
+  await doRichCopy(filled);
+  closeModal('fillOverlay');
+}
+
+// ══════════════════════════════════════════════════════════════
+// TAG MANAGER
+// ══════════════════════════════════════════════════════════════
+// Helper: formato canónico de cargo
+function cargoLabel(c){
+  const grado = String(c.grado).padStart(2,'0');
+  return `${c.denominacion} , CÓDIGO ${c.codigo} , GRADO ${grado}`;
+}
+
+function openTagManager(){
+  renderTagGrid();
+  renderCargosSection();
+  renderDefaultsSection();
+  document.getElementById('ntName').value='';
+  document.getElementById('ntLabel').value='';
+  document.getElementById('ntType').value='text';
+  document.getElementById('ntOptionsWrap').style.display='none';
+  // Arrows for collapsibles
+  const wireArrow=(id,arrowId)=>{
+    const el=document.getElementById(id);
+    if(el) el.ontoggle=()=>document.getElementById(arrowId).textContent=el.open?'▲':'▼';
+  };
+  wireArrow('defaultsSection','defaultsArrow');
+  wireArrow('cargosSection','cargosArrow');
+  wireArrow('tagsListSection','tagsListArrow');
+  openModal('tagManagerOverlay');
+}
+
+function renderDefaultsSection(){
+  const body=document.getElementById('defaultsBody');
+  const fillableTags=tags.filter(t=>!['auto_cargo'].includes(t.type));
+  const hasCargoGroup=tags.some(t=>['cargo'].includes(t.type));
+
+  let html='';
+
+  // Cargo selector (fills CARGO, DENOMINACION, CODIGO, GRADO)
+  if(hasCargoGroup){
+    const savedIdx=tagDefaults.__cargoIndex??'';
+    html+=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px">
+      <div style="font-size:10px;font-weight:700;color:var(--tag-color);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em">&#9868; Cargo por defecto <span style="font-size:9px;background:var(--tag-bg);border:1px solid var(--tag-border);border-radius:3px;padding:1px 5px">{{CARGO}} {{DENOMINACION}} {{CODIGO}} {{GRADO}}</span></div>
+      <select id="def_cargo" onchange="onDefaultCargoChange()"
+        style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:13px;color:var(--text);outline:none">
+        <option value="">— Sin valor por defecto —</option>
+        ${cargos.map((c,i)=>`<option value="${i}"${savedIdx===i?' selected':''}>${cargoLabel(c)}</option>`).join('')}
+      </select>
+    </div>`;
+  }
+
+  // Other tags
+  const others=fillableTags.filter(t=>t.type!=='cargo');
+  if(others.length){
+    html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">`;
+    others.forEach(t=>{
+      const val=tagDefaults[t.name]||'';
+      const isDropdown=t.type==='dropdown';
+      const opts=t.options||[];
+      html+=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px">
+        <div style="font-size:10px;font-weight:700;color:var(--tag-color);margin-bottom:5px">
+          <code style="background:var(--tag-bg);border:1px solid var(--tag-border);border-radius:3px;padding:1px 5px">{{${esc(t.name)}}}</code>
+          <span style="font-weight:400;color:var(--text3);font-size:9px;margin-left:4px">${esc(t.label)}</span>
+        </div>`;
+      if(isDropdown&&opts.length){
+        html+=`<select id="def_${t.name}" onchange="saveTagDefault('${t.name}',this.value)"
+          style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:12px;color:var(--text);outline:none">
+          <option value="">— Sin valor —</option>
+          ${opts.map(o=>`<option${val===o?' selected':''}>${esc(o)}</option>`).join('')}
+        </select>`;
+      } else {
+        html+=`<input id="def_${t.name}" type="${t.type==='number'?'number':'text'}" value="${esc(val)}"
+          placeholder="${esc(t.placeholder||'')}"
+          oninput="saveTagDefault('${t.name}',this.value)"
+          style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:12px;color:var(--text);outline:none;font-family:inherit">`;
+      }
+      html+=`</div>`;
+    });
+    html+=`</div>`;
+  }
+
+  html+=`<div style="display:flex;justify-content:flex-end;gap:8px">
+    <button class="btn btn-ghost btn-sm" onclick="clearAllDefaults()">&#10005; Limpiar todo</button>
+    <button class="btn btn-success btn-sm" onclick="toast('Valores guardados automáticamente ✓')">&#10003; Guardar valores</button>
+  </div>`;
+
+  body.innerHTML=html;
+}
+
+function onDefaultCargoChange(){
+  const sel=document.getElementById('def_cargo');
+  const idx=sel.value===''?null:parseInt(sel.value);
+  if(idx===null){ delete tagDefaults.__cargoIndex; }
+  else { tagDefaults.__cargoIndex=idx; }
+  saveDefaults();
+}
+
+function saveTagDefault(name,val){
+  if(val.trim()) tagDefaults[name]=val.trim();
+  else delete tagDefaults[name];
+  saveDefaults();
+}
+
+function clearAllDefaults(){
+  tagDefaults={};
+  saveDefaults();
+  renderDefaultsSection();
+  toast('Valores por defecto borrados');
+}
+
+// ══════════════════════════════════════════════════════════════
+// CARGO MANAGER
+// ══════════════════════════════════════════════════════════════
+let editingCargoIdx = null;
+
+function renderCargosSection(){
+  const body = document.getElementById('cargosBody');
+  const det  = document.getElementById('cargosSection');
+  if(det) det.ontoggle = () => document.getElementById('cargosArrow').textContent = det.open ? '▲' : '▼';
+
+  let html = `<div style="display:flex;flex-direction:column;gap:4px" id="cargoList">`;
+  cargos.forEach((c, i) => {
+    html += `<div class="tag-row" id="cargorow_${i}">
+      <div class="tag-row-view" style="padding:7px 12px">
+        <span style="font-family:monospace;font-size:12px;font-weight:600;color:var(--text);flex:1">${esc(cargoLabel(c))}</span>
+        <div class="tag-row-actions">
+          <button class="btn btn-outline btn-xs" onclick="startEditCargo(${i})">&#9998;</button>
+          <button class="btn btn-danger btn-xs" onclick="confirmDeleteCargo(${i})">&#128465;</button>
+        </div>
+      </div>
+      <div id="cargoEditRow_${i}" style="display:none"></div>
+    </div>`;
+  });
+  html += `</div>`;
+
+  // Add new cargo form
+  html += `<div style="background:var(--surface);border:2px dashed var(--border2);border-radius:var(--radius);padding:12px;display:flex;flex-direction:column;gap:8px">
+    <div style="font-size:11px;font-weight:700;color:var(--text2)">+ Nuevo cargo</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <input id="nc_denom" placeholder="DENOMINACIÓN (ej: PROFESIONAL UNIVERSITARIO)"
+        style="flex:3;min-width:180px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:12px;color:var(--text);outline:none;text-transform:uppercase;font-family:inherit"
+        oninput="this.value=this.value.toUpperCase()">
+      <input id="nc_codigo" placeholder="Código (ej: 219)"
+        style="flex:1;min-width:70px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:12px;color:var(--text);outline:none;font-family:monospace">
+      <input id="nc_grado" placeholder="Grado (ej: 3)"
+        style="flex:1;min-width:60px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:12px;color:var(--text);outline:none;font-family:monospace">
+      <button class="btn btn-primary btn-sm" onclick="addCargo()">+ Agregar</button>
+    </div>
+  </div>`;
+
+  body.innerHTML = html;
+}
+
+function startEditCargo(i){
+  if(editingCargoIdx !== null && editingCargoIdx !== i) cancelEditCargo(editingCargoIdx);
+  editingCargoIdx = i;
+  const c = cargos[i];
+  const row = document.getElementById(`cargorow_${i}`);
+  row.querySelector('.tag-row-view').style.display = 'none';
+  const editDiv = document.getElementById(`cargoEditRow_${i}`);
+  editDiv.innerHTML = `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;background:var(--accent-light);border:1px solid #bfdbfe;border-radius:var(--radius);padding:10px;margin-top:2px">
+      <input id="ec_denom_${i}" value="${esc(c.denominacion)}"
+        style="flex:3;min-width:180px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 9px;font-size:12px;color:var(--text);outline:none;text-transform:uppercase;font-family:inherit"
+        oninput="this.value=this.value.toUpperCase()">
+      <input id="ec_codigo_${i}" value="${esc(c.codigo)}" placeholder="Código"
+        style="flex:1;min-width:70px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 9px;font-size:12px;color:var(--text);outline:none;font-family:monospace">
+      <input id="ec_grado_${i}" value="${esc(c.grado)}" placeholder="Grado"
+        style="flex:1;min-width:60px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 9px;font-size:12px;color:var(--text);outline:none;font-family:monospace">
+      <button class="btn btn-primary btn-xs" onclick="saveEditCargo(${i})">&#10003;</button>
+      <button class="btn btn-ghost btn-xs" onclick="cancelEditCargo(${i})">&#10005;</button>
+    </div>`;
+  editDiv.style.display = '';
+  document.getElementById(`ec_denom_${i}`).focus();
+}
+
+function cancelEditCargo(i){
+  editingCargoIdx = null;
+  const row = document.getElementById(`cargorow_${i}`);
+  if(!row) return;
+  row.querySelector('.tag-row-view').style.display = '';
+  const ed = document.getElementById(`cargoEditRow_${i}`);
+  if(ed){ ed.style.display='none'; ed.innerHTML=''; }
+}
+
+function saveEditCargo(i){
+  const denom = document.getElementById(`ec_denom_${i}`).value.trim();
+  const codigo= document.getElementById(`ec_codigo_${i}`).value.trim();
+  const grado = document.getElementById(`ec_grado_${i}`).value.trim();
+  if(!denom || !codigo || !grado){ toast('Completa todos los campos'); return; }
+  cargos[i] = { denominacion: denom, codigo, grado };
+  saveCargos();
+  cancelEditCargo(i);
+  renderCargosSection();
+  toast('Cargo actualizado');
+}
+
+function confirmDeleteCargo(i){
+  const row = document.getElementById(`cargorow_${i}`);
+  row.querySelector('.tag-row-view').style.opacity = '.4';
+  const strip = document.createElement('div');
+  strip.id = `del_cargo_strip_${i}`;
+  strip.style.cssText = 'display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--danger-light);border:1px solid #fca5a5;border-radius:6px;margin-top:2px;font-size:12px';
+  strip.innerHTML = `<span style="flex:1;color:var(--danger);font-weight:500">&#9888; ¿Eliminar <strong>${esc(cargoLabel(cargos[i]))}</strong>?</span>
+    <button class="btn btn-danger btn-xs" onclick="doDeleteCargo(${i})">Sí</button>
+    <button class="btn btn-outline btn-xs" onclick="cancelDeleteCargo(${i})">No</button>`;
+  row.appendChild(strip);
+}
+
+function cancelDeleteCargo(i){
+  const strip = document.getElementById(`del_cargo_strip_${i}`);
+  if(strip) strip.remove();
+  const row = document.getElementById(`cargorow_${i}`);
+  const view = row && row.querySelector('.tag-row-view');
+  if(view) view.style.opacity = '';
+}
+
+function doDeleteCargo(i){
+  cargos.splice(i, 1);
+  saveCargos();
+  renderCargosSection();
+  renderDefaultsSection();
+  toast('Cargo eliminado');
+}
+
+function addCargo(){
+  const denom = document.getElementById('nc_denom').value.trim();
+  const codigo= document.getElementById('nc_codigo').value.trim();
+  const grado = document.getElementById('nc_grado').value.trim();
+  if(!denom || !codigo || !grado){ toast('Completa denominación, código y grado'); return; }
+  cargos.push({ denominacion: denom, codigo, grado });
+  // Sort alphabetically
+  cargos.sort((a,b) => a.denominacion.localeCompare(b.denominacion) || a.grado.localeCompare(b.grado));
+  saveCargos();
+  renderCargosSection();
+  renderDefaultsSection();
+  document.getElementById('nc_denom').value='';
+  document.getElementById('nc_codigo').value='';
+  document.getElementById('nc_grado').value='';
+  toast(`Cargo "${denom}" agregado`);
+}
+
+const TYPE_LABELS={text:'Texto libre',number:'Número',dropdown:'Lista de opciones',cargo:'Cargo (auto-fill)',auto_cargo:'Auto (desde cargo)'};
+let editingTagId=null;
+
+function tagValuePreview(t){
+  if(t.type==='dropdown' && t.options&&t.options.length)
+    return `<span style="font-size:10px;color:var(--text3);font-style:italic">${t.options.slice(0,3).map(o=>esc(o)).join(' · ')}${t.options.length>3?' · …':''}</span>`;
+  if(t.type==='cargo') return `<span style="font-size:10px;color:var(--text3);font-style:italic">Selección de planta</span>`;
+  if(t.type==='auto_cargo') return `<span style="font-size:10px;color:var(--text3);font-style:italic">Auto desde cargo</span>`;
+  if(t.placeholder) return `<span style="font-size:10px;color:var(--text3);font-style:italic">${esc(t.placeholder)}</span>`;
+  return `<span style="font-size:10px;color:var(--border2)">Sin ejemplo</span>`;
+}
+
+function renderTagGrid(){
+  const grid=document.getElementById('tagGrid');
+  if(!tags.length){grid.innerHTML='<p style="color:var(--text3);font-size:13px;padding:8px">No hay etiquetas.</p>';return;}
+  grid.innerHTML=tags.map(t=>{
+    const tl=TYPE_LABELS[t.type]||t.type;
+    const canEdit=!['auto_cargo'].includes(t.type);
+    const canDel=true;
+    return `<div class="tag-row" id="tagrow_${t.id}">
+      <div class="tag-row-view">
+        <span class="tag-item-name">{{${esc(t.name)}}}</span>
+        <span class="tag-row-label">
+          ${esc(t.label)}
+          <br><span class="tag-row-value">${tagValuePreview(t)}</span>
+        </span>
+        <span class="tag-row-type">${tl}${t.builtin?'<span class="builtin-badge">predefinida</span>':''}</span>
+        <div class="tag-row-actions">
+          <button class="btn btn-outline btn-xs" onclick="insertTagFromManager('{{${t.name}}}')" title="Copiar/insertar">&#8618;</button>
+          ${canEdit?`<button class="btn btn-outline btn-xs" onclick="startEditTag('${t.id}')">&#9998; Editar</button>`:''}
+          ${canDel?`<button class="btn btn-danger btn-xs" onclick="confirmDeleteTag('${t.id}')">&#128465;</button>`:''}
+        </div>
+      </div>
+      <div class="tag-row-edit" style="display:none"></div>
+    </div>`;
+  }).join('');
+}
+
+function startEditTag(id){
+  if(editingTagId && editingTagId!==id) cancelEditTag(editingTagId);
+  editingTagId=id;
+  const t=tags.find(x=>x.id===id); if(!t)return;
+  const row=document.getElementById('tagrow_'+id);
+  row.querySelector('.tag-row-view').style.display='none';
+  const editDiv=row.querySelector('.tag-row-edit');
+  const canChangeName=true;
+  const isDropdown=t.type==='dropdown';
+  editDiv.innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:8px;background:var(--accent-light);border:1px solid #bfdbfe;border-radius:var(--radius);padding:12px;margin-top:4px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div style="flex:1;min-width:120px">
+          <div style="font-size:10px;font-weight:700;color:var(--text2);margin-bottom:4px">NOMBRE</div>
+          <input id="et_name_${id}" value="${esc(t.name)}" ${canChangeName?'':'readonly style="opacity:.5"'}
+            style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 9px;font-family:monospace;font-size:12px;color:var(--text);outline:none"
+            oninput="this.value=this.value.toUpperCase().replace(/\\s+/g,'_')">
+        </div>
+        <div style="flex:2;min-width:160px">
+          <div style="font-size:10px;font-weight:700;color:var(--text2);margin-bottom:4px">DESCRIPCIÓN</div>
+          <input id="et_label_${id}" value="${esc(t.label)}"
+            style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 9px;font-size:12px;color:var(--text);outline:none;font-family:inherit">
+        </div>
+        ${!t.builtin?`<div style="min-width:140px">
+          <div style="font-size:10px;font-weight:700;color:var(--text2);margin-bottom:4px">TIPO</div>
+          <select id="et_type_${id}" onchange="toggleEditOpts('${id}')"
+            style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 9px;font-size:12px;color:var(--text);outline:none">
+            ${['text','number','dropdown'].map(v=>`<option value="${v}"${t.type===v?' selected':''}>${TYPE_LABELS[v]||v}</option>`).join('')}
+          </select>
+        </div>`:''}
+      </div>
+      <div id="et_ph_wrap_${id}" style="${isDropdown?'display:none':''}">
+        <div style="font-size:10px;font-weight:700;color:var(--text2);margin-bottom:4px">EJEMPLO / PLACEHOLDER</div>
+        <input id="et_ph_${id}" value="${esc(t.placeholder||'')}" placeholder="Ej: 1234567"
+          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 9px;font-size:12px;color:var(--text);outline:none;font-family:inherit">
+      </div>
+      <div id="et_opts_wrap_${id}" style="${isDropdown?'':'display:none'}">
+        <div style="font-size:10px;font-weight:700;color:var(--text2);margin-bottom:4px">OPCIONES (una por línea)</div>
+        <textarea id="et_opts_${id}"
+          style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-size:12px;color:var(--text);outline:none;font-family:inherit;min-height:60px;resize:vertical">${(t.options||[]).join('\n')}</textarea>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-primary btn-xs" onclick="saveEditTag('${id}')">&#10003; Guardar cambios</button>
+        <button class="btn btn-ghost btn-xs" onclick="cancelEditTag('${id}')">Cancelar</button>
+      </div>
+    </div>`;
+  editDiv.style.display='';
+  document.getElementById(`et_label_${id}`).focus();
+}
+
+function toggleEditOpts(id){
+  const type=document.getElementById(`et_type_${id}`).value;
+  document.getElementById(`et_opts_wrap_${id}`).style.display=type==='dropdown'?'':'none';
+  const phWrap=document.getElementById(`et_ph_wrap_${id}`);
+  if(phWrap) phWrap.style.display=type==='dropdown'?'none':'';
+}
+
+function cancelEditTag(id){
+  editingTagId=null;
+  const row=document.getElementById('tagrow_'+id); if(!row)return;
+  row.querySelector('.tag-row-view').style.display='';
+  const ed=row.querySelector('.tag-row-edit');
+  ed.style.display='none'; ed.innerHTML='';
+}
+
+function saveEditTag(id){
+  const t=tags.find(x=>x.id===id); if(!t)return;
+  const nameEl=document.getElementById(`et_name_${id}`);
+  const newName=(nameEl?nameEl.value.trim():t.name)||t.name;
+  const newLabel=document.getElementById(`et_label_${id}`).value.trim()||t.label;
+  const typeEl=document.getElementById(`et_type_${id}`);
+  const newType=typeEl?typeEl.value:t.type;
+  const optsEl=document.getElementById(`et_opts_${id}`);
+  const newOpts=optsEl?optsEl.value.split('\n').map(s=>s.trim()).filter(Boolean):t.options||[];
+  const phEl=document.getElementById(`et_ph_${id}`);
+  const newPh=phEl?phEl.value.trim():'';
+  if(newName!==t.name && tags.find(x=>x.name===newName)){toast('Ya existe una etiqueta con ese nombre');return;}
+  t.name=newName; t.label=newLabel; t.type=newType;
+  if(newType==='dropdown'){t.options=newOpts;delete t.placeholder;}
+  else{if(newPh)t.placeholder=newPh;else delete t.placeholder;delete t.options;}
+  saveTags(); cancelEditTag(id); renderTagGrid(); buildInsertButtons&&buildInsertButtons();
+  toast(`Etiqueta {{${newName}}} actualizada`);
+}
+
+function confirmDeleteTag(id){
+  const t=tags.find(x=>x.id===id); if(!t)return;
+  const row=document.getElementById('tagrow_'+id);
+  row.querySelector('.tag-row-view').style.opacity='.4';
+  const strip=document.createElement('div');
+  strip.id='del_strip_'+id;
+  strip.style.cssText='display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--danger-light);border:1px solid #fca5a5;border-radius:6px;margin-top:4px;font-size:12px';
+  strip.innerHTML=`<span style="flex:1;color:var(--danger);font-weight:500">&#9888; ¿Eliminar <code style="background:rgba(239,68,68,.15);padding:1px 4px;border-radius:3px">{{${esc(t.name)}}}</code>?</span>
+    <button class="btn btn-danger btn-xs" onclick="doDeleteTag('${id}')">Sí, eliminar</button>
+    <button class="btn btn-outline btn-xs" onclick="cancelConfirmTag('${id}')">Cancelar</button>`;
+  row.appendChild(strip);
+}
+
+function cancelConfirmTag(id){
+  const strip=document.getElementById('del_strip_'+id); if(strip)strip.remove();
+  const row=document.getElementById('tagrow_'+id);
+  const view=row&&row.querySelector('.tag-row-view'); if(view)view.style.opacity='';
+}
+
+function doDeleteTag(id){
+  tags=tags.filter(t=>t.id!==id); saveTags(); renderTagGrid(); buildInsertButtons&&buildInsertButtons();
+  toast('Etiqueta eliminada');
+}
+
+function deleteTag(id){ confirmDeleteTag(id); }
+
+function insertTagFromManager(text){
+  if(quill&&document.getElementById('entryOverlay').classList.contains('open')){
+    insertTag(text); toast(`${text} insertada en el editor`);
+  } else {
+    navigator.clipboard.writeText(text).then(()=>toast(`${text} copiada al portapapeles`));
+  }
+}
+
+function renderNewTagOptions(){
+  document.getElementById('ntOptionsWrap').style.display=
+    document.getElementById('ntType').value==='dropdown'?'':'none';
+}
+
+function createCustomTag(){
+  const name=document.getElementById('ntName').value.trim().toUpperCase().replace(/\s+/g,'_');
+  const label=document.getElementById('ntLabel').value.trim()||name;
+  const type=document.getElementById('ntType').value;
+  const opts=type==='dropdown'?document.getElementById('ntOptions').value.split('\n').map(s=>s.trim()).filter(Boolean):[];
+  if(!name){toast('El nombre es obligatorio');return;}
+  if(tags.find(t=>t.name===name)){toast('Ya existe una etiqueta con ese nombre');return;}
+  const newTag={id:uid(),name,label,type,builtin:false};
+  if(opts.length)newTag.options=opts;
+  tags.push(newTag); saveTags(); renderTagGrid(); buildInsertButtons&&buildInsertButtons();
+  document.getElementById('ntName').value=''; document.getElementById('ntLabel').value='';
+  if(document.getElementById('ntOptions'))document.getElementById('ntOptions').value='';
+  toast(`Etiqueta {{${name}}} creada`);
+}
+
+// ══════════════════════════════════════════════════════════════
+// HISTORY
+// ══════════════════════════════════════════════════════════════
+function openHistoryModal(){if(detailId)openHistoryModalFor(detailId);}
+function openHistoryModalFor(id){
+  closeAllDrops();
+  const e=state.entries.find(x=>x.id===id);if(!e)return;
+  const versions=[...(e.versions||[])].reverse();
+  const body=document.getElementById('historyBody');
+  if(!versions.length){
+    body.innerHTML=`<div style="text-align:center;padding:24px;color:var(--text3)"><div style="font-size:34px;margin-bottom:8px">&#128336;</div><div>No hay versiones guardadas aún.</div></div>`;
+  } else {
+    body.innerHTML=`<div style="display:flex;flex-direction:column;gap:8px">`+
+    versions.map((v,i)=>{
+      const d=new Date(v.savedAt);
+      const ds=`${d.toLocaleDateString('es',{day:'2-digit',month:'short',year:'numeric'})} ${d.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'})}`;
+      const prev=stripHtml(v.html||v.body||'').trim().slice(0,110);
+      return `<div class="version-item">
+        <div class="version-meta">
+          <span class="version-badge">v${versions.length-i}</span>
+          <span>${ds}</span>
+          ${v.note?`<span style="font-style:italic;color:var(--text2)">${esc(v.note)}</span>`:''}
+          <button class="btn btn-outline btn-xs" style="margin-left:auto" onclick="restoreVersion('${id}',${e.versions.length-1-i})">&#8635; Restaurar</button>
+        </div>
+        ${prev?`<div class="version-preview">${esc(prev)}…</div>`:''}
+      </div>`;
+    }).join('')+'</div>';
+  }
+  openModal('historyOverlay');
+}
+
+function restoreVersion(entryId,vi){
+  if(!confirm('¿Restaurar esta versión?'))return;
+  const e=state.entries.find(x=>x.id===entryId);if(!e)return;
+  const v=e.versions[vi];if(!v)return;
+  e.versions.push({html:e.html,body:e.body,code:e.code,savedAt:e.updatedAt,note:'Antes de restaurar'});
+  e.html=v.html;e.body=v.body;e.code=v.code;e.updatedAt=Date.now();
+  e.versions.splice(vi,1);
+  save();closeModal('historyOverlay');openDetail(entryId);renderAll();toast('Versión restaurada');
+}
+
+// ══════════════════════════════════════════════════════════════
+// CATEGORIES
+// ══════════════════════════════════════════════════════════════
+const CAT_COLORS2=['#6366f1','#3b82f6','#0ea5e9','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#84cc16'];
+let selColor=CAT_COLORS2[0];
+
+// Default icons per category name keyword
+const CAT_ICON_DEFAULTS = [
+  ['equivalen',  '⚖️'], ['vacanci',   '📋'], ['reporte',  '📊'],
+  ['cargo',      '👥'], ['acuerdo',   '📜'], ['cecat',    '🏛️'],
+  ['ia',         '🤖'], ['informa',   'ℹ️'], ['decreto',  '📄'],
+  ['proceso',    '⚙️'], ['general',   '📁'], ['norma',    '📚'],
+];
+function defaultIcon(name){
+  const n=name.toLowerCase();
+  for(const [k,v] of CAT_ICON_DEFAULTS) if(n.includes(k)) return v;
+  return '📁';
+}
+
+function openCatModal(){
+  // Assign icons to existing categories that don't have one
+  state.categories.forEach(c=>{ if(!c.icon) c.icon=defaultIcon(c.name); });
+  renderCatList(); renderColorPicker();
+  document.getElementById('newCatName').value='';
+  document.getElementById('newCatIcon').value='';
+  openModal('catOverlay');
+}
+
+function renderCatList(){
+  const el=document.getElementById('catList');
+  if(!state.categories.length){el.innerHTML='<p style="color:var(--text3);font-size:13px">No hay categorías.</p>';return;}
+  el.innerHTML=state.categories.map(c=>{
+    const cnt=state.entries.filter(e=>e.categoryId===c.id).length;
+    const icon=c.icon||defaultIcon(c.name);
+    return `<div style="display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;transition:border-color .15s" id="catrow_${c.id}">
+      <div style="width:38px;height:38px;border-radius:10px;background:${c.color}22;border:2px solid ${c.color}44;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${icon}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;color:var(--text)">${esc(c.name)}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:1px">${cnt} ${cnt===1?'entrada':'entradas'}</div>
+      </div>
+      <div style="width:12px;height:12px;border-radius:50%;background:${c.color};flex-shrink:0"></div>
+      <button onclick="startEditCat('${c.id}')" class="btn btn-outline btn-xs">&#9998;</button>
+      <button class="del-cat" onclick="deleteCat('${c.id}')">&#215;</button>
+    </div>
+    <div id="catedit_${c.id}" style="display:none"></div>`;
+  }).join('');
+}
+
+function startEditCat(id){
+  const c=state.categories.find(x=>x.id===id); if(!c)return;
+  const editDiv=document.getElementById('catedit_'+id);
+  const icon=c.icon||defaultIcon(c.name);
+  editDiv.innerHTML=`<div style="display:flex;gap:8px;align-items:center;background:var(--accent-light);border:1px solid #bfdbfe;border-radius:var(--radius);padding:10px;margin-top:-4px;margin-bottom:2px">
+    <input id="ei_icon_${id}" value="${icon}" maxlength="2" style="width:42px;text-align:center;font-size:18px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px;outline:none">
+    <input id="ei_name_${id}" value="${esc(c.name)}" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 9px;font-size:13px;color:var(--text);outline:none;font-family:inherit">
+    <div class="color-swatches" id="ei_colors_${id}">
+      ${CAT_COLORS2.map(col=>`<span class="swatch${col===c.color?' sel':''}" style="background:${col};width:18px;height:18px" onclick="setCatEditColor('${id}','${col}')"></span>`).join('')}
+    </div>
+    <button class="btn btn-primary btn-xs" onclick="saveEditCat('${id}')">&#10003;</button>
+    <button class="btn btn-ghost btn-xs" onclick="cancelEditCat('${id}')">&#10005;</button>
+  </div>`;
+  editDiv.style.display='';
+  document.getElementById(`ei_name_${id}`).focus();
+}
+
+function setCatEditColor(id, col){
+  const colors=document.getElementById('ei_colors_'+id);
+  colors.querySelectorAll('.swatch').forEach(s=>s.classList.remove('sel'));
+  colors.querySelectorAll('.swatch').forEach(s=>{if(s.style.background===col)s.classList.add('sel');});
+  colors.dataset.selected=col;
+}
+
+function saveEditCat(id){
+  const c=state.categories.find(x=>x.id===id); if(!c)return;
+  c.name=document.getElementById(`ei_name_${id}`).value.trim()||c.name;
+  c.icon=document.getElementById(`ei_icon_${id}`).value.trim()||defaultIcon(c.name);
+  const sel=document.getElementById(`ei_colors_${id}`).querySelector('.swatch.sel');
+  if(sel) c.color=sel.style.background;
+  save(); renderCatList(); renderAll(); renderSidebar();
+}
+
+function cancelEditCat(id){
+  const ed=document.getElementById('catedit_'+id);
+  if(ed){ed.style.display='none';ed.innerHTML='';}
+}
+
+function renderColorPicker(){
+  document.getElementById('catColorPicker').innerHTML=CAT_COLORS2.map(c=>
+    `<span class="swatch ${c===selColor?'sel':''}" style="background:${c}" onclick="selColor='${c}';renderColorPicker()"></span>`
+  ).join('');
+}
+
+function addCategory(){
+  const name=document.getElementById('newCatName').value.trim();if(!name)return;
+  const icon=document.getElementById('newCatIcon').value.trim()||defaultIcon(name);
+  state.categories.push({id:uid(),name,color:selColor,icon});save();renderCatList();renderAll();
+  document.getElementById('newCatName').value='';
+  document.getElementById('newCatIcon').value='';
+}
+function deleteCat(id){
+  const cnt=state.entries.filter(e=>e.categoryId===id).length;
+  if(cnt&&!confirm(`Esta categoría tiene ${cnt} entrada(s). ¿Eliminar?`))return;
+  state.entries.forEach(e=>{if(e.categoryId===id)e.categoryId='';});
+  state.categories=state.categories.filter(c=>c.id!==id);
+  if(filterCat===id)filterCat='all';save();renderCatList();renderAll();
+}
+
+// ══════════════════════════════════════════════════════════════
+// DELETE
+// ══════════════════════════════════════════════════════════════
+function confirmDel(id){
+  closeAllDrops();pendingDelId=id;
+  document.getElementById('confirmDeleteBtn').onclick=()=>{
+    state.entries=state.entries.filter(e=>e.id!==pendingDelId);
+    save();closeModal('confirmOverlay');renderAll();toast('Entrada eliminada');
+  };
+  openModal('confirmOverlay');
+}
+
+// ══════════════════════════════════════════════════════════════
+// EXPORT / IMPORT
+// ══════════════════════════════════════════════════════════════
+function exportData(){
+  const blob=new Blob([JSON.stringify({...state,tags},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`base_dpc_${new Date().toISOString().slice(0,10)}.json`;a.click();
+  toast('Exportado correctamente');
+}
+function importData(){document.getElementById('importFile').click();}
+function handleImport(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const d=JSON.parse(ev.target.result);
+      if(d.categories&&d.entries&&confirm(`Importar ${d.entries.length} entradas? Reemplaza datos actuales.`)){
+        state=d;if(d.tags)tags=d.tags;save();saveTags();renderAll();toast('Importado correctamente');
+      }
+    }catch{alert('No se pudo leer el archivo.');}
+    e.target.value='';
+  };
+  r.readAsText(f);
+}
+
+// ══════════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════════
+function toast(msg){const el=document.getElementById('toast');el.innerHTML=msg;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),3000);}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function backdropClose(e,id){if(e.target.id===id)closeModal(id);}
+function toggleDrop(id){closeAllDrops();document.getElementById(id)?.classList.toggle('open');}
+function closeAllDrops(){document.querySelectorAll('.dropdown.open').forEach(d=>d.classList.remove('open'));}
+document.addEventListener('click',e=>{if(!e.target.closest('.card-menu'))closeAllDrops();});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')['entryOverlay','detailOverlay','catOverlay','confirmOverlay','historyOverlay','fillOverlay','tagManagerOverlay'].forEach(closeModal);
+  if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();document.getElementById('searchInput').focus();}
+});
+
+renderAll();
+</script>
+</body>
+</html>
