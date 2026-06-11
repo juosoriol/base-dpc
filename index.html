@@ -260,7 +260,6 @@ main{overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px}
 [data-theme="dark"] .entry-tag{background:#0f172a;border-color:#2d3f55}
 [data-theme="dark"] .btn-outline{background:#1e293b;border-color:#2d3f55;color:#94a3b8}
 [data-theme="dark"] .btn-outline:hover{background:#0f172a}
-[data-theme="dark"] #dCode{background:#0f172a;border-color:#2d3f55;color:#94a3b8}
 
 /* Print */
 @media print{
@@ -387,10 +386,6 @@ main{overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px}
         <div id="quillEditor"></div>
         <textarea id="fHtmlSource" style="display:none;width:100%;font-family:monospace;font-size:12px;min-height:200px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:10px;color:var(--text);outline:none;resize:vertical;line-height:1.5" placeholder="HTML de la respuesta..."></textarea>
       </div>
-      <div class="form-group">
-        <label>Código / texto adicional (opcional)</label>
-        <textarea id="fCode" style="font-family:monospace;font-size:12px;min-height:60px" placeholder="Código, queries, texto sin formato..."></textarea>
-      </div>
       <div class="form-row">
         <div class="form-group">
           <label>Etiquetas de búsqueda</label>
@@ -434,13 +429,6 @@ main{overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px}
         <span id="dUsageLabel" style="font-size:10px;color:var(--text3);margin-left:auto;align-self:center"></span>
       </div>
       <div class="detail-content" id="dHtmlContent"></div>
-      <div id="dCodeWrap" style="display:none;margin-top:8px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-          <span style="font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase">Código adicional</span>
-          <button class="btn btn-outline btn-xs" onclick="copyPlainCode()">Copiar</button>
-        </div>
-        <pre id="dCode" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:12px;overflow-x:auto;line-height:1.5;white-space:pre-wrap;font-family:monospace"></pre>
-      </div>
       <div style="display:flex;flex-wrap:wrap;gap:5px" id="dTags"></div>
       <div style="font-size:11px;color:var(--text3)" id="dDate"></div>
     </div>
@@ -1022,7 +1010,6 @@ function openEntryModal(id=null) {
     const e=state.entries.find(x=>x.id===id);
     if(e){
       document.getElementById('fTitle').value=e.title;
-      document.getElementById('fCode').value=e.code||'';
       sel.value=e.categoryId||'';
       currentTags=[...(e.tags||[])];
       const htmlContent=e.html||(e.body?`<p>${e.body}</p>`:'');
@@ -1033,7 +1020,6 @@ function openEntryModal(id=null) {
     }
   } else {
     document.getElementById('fTitle').value='';
-    document.getElementById('fCode').value='';
     quill.setText('');
     document.getElementById('fHtmlSource').value='';
     if(!['all','favs','top'].includes(filterCat)) sel.value=filterCat;
@@ -1079,7 +1065,7 @@ function saveEntry(){
   }
   const entry={
     id:editingId||uid(),title,html:newHtml,body:'',
-    code:document.getElementById('fCode').value,
+    code:existing?existing.code||'':'',
     categoryId:document.getElementById('fCategory').value,
     tags:[...currentTags],
     favorite:existing?existing.favorite:false,
@@ -1113,8 +1099,6 @@ function openDetail(id){
   fb.innerHTML=e.favorite?'&#9733;':'&#9734;';fb.style.color=e.favorite?'var(--gold)':'';
   const raw=e.html||(e.body?`<p>${esc(e.body).replace(/\n/g,'<br>')}</p>`:'<p style="color:var(--text3)">Sin contenido.</p>');
   document.getElementById('dHtmlContent').innerHTML=highlightTags(raw);
-  if(e.code){document.getElementById('dCode').textContent=e.code;document.getElementById('dCodeWrap').style.display='';}
-  else document.getElementById('dCodeWrap').style.display='none';
   document.getElementById('dTags').innerHTML=(e.tags||[]).map(t=>`<span class="entry-tag">#${esc(t)}</span>`).join('');
   const d=new Date(e.updatedAt);
   document.getElementById('dDate').textContent=`Actualizado: ${d.toLocaleDateString('es',{day:'2-digit',month:'long',year:'numeric'})} ${d.toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'})}`+((e.versions||[]).length?` · ${e.versions.length} versión(es)`:'');
@@ -1152,7 +1136,6 @@ async function doRichCopy(htmlContent){
     toast('Copiado como texto plano');
   }
 }
-function copyPlainCode(){navigator.clipboard.writeText(document.getElementById('dCode').textContent).then(()=>toast('Código copiado'));}
 
 // ══════════════════════════════════════════════════════════════
 // FILL MODAL (etiquetas con cargo inteligente)
