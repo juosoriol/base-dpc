@@ -6,11 +6,12 @@ Base de conocimiento para la Dirección de Procesos de Control (DPC) de la Contr
 ## Ruta del proyecto
 ```
 C:\dev\BaseDPC\
-├── index.html      ← único archivo de la app
-├── README.md
-├── setup.ps1       ← instalación/actualización en Windows
-├── serve.ps1       ← servidor local (puerto 3000)
-└── .vscode/        ← F5 para abrir con servidor HTTP
+├── index.html              ← único archivo de la app
+├── BaseDPC.code-workspace  ← workspace para Cursor/VS Code
+├── instalar.ps1            ← instalación completa (un comando)
+├── setup.ps1               ← clonar/actualizar
+├── serve.ps1               ← servidor local (puerto 3000)
+└── .vscode/                ← F5 para abrir con servidor HTTP
 ```
 
 Repositorio: https://github.com/juosoriol/base-dpc
@@ -72,10 +73,18 @@ Repositorio: https://github.com/juosoriol/base-dpc
 Abrir `index.html` directamente en el navegador — no requiere servidor.
 
 ## Instalación local (Windows)
+
+Un solo comando (desde PowerShell):
+
 ```powershell
-git clone https://github.com/juosoriol/base-dpc.git C:\dev\BaseDPC
-cd C:\dev\BaseDPC
-.\setup.ps1
+powershell -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/juosoriol/base-dpc/main/instalar.ps1 | iex"
 ```
 
-Para actualizar: `.\setup.ps1 -Update` o `git pull origin main`
+O si ya está clonado:
+
+```powershell
+cd C:\dev\BaseDPC
+.\instalar.ps1
+```
+
+Para solo actualizar: `.\setup.ps1 -Update` o `git pull origin main`

@@ -1,0 +1,16 @@
+{
+  "folders": [
+    {
+      "name": "Base DPC",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "files.associations": {
+      "index.html": "html"
+    }
+  },
+  "extensions": {
+    "recommendations": []
+  }
+}

@@ -1,10 +1,17 @@
 # Base DPC — Script de instalación y actualización
 # Uso: .\setup.ps1          (instalación inicial)
 #      .\setup.ps1 -Update  (actualizar repositorio existente)
+#      .\setup.ps1 -Todo    (instalación completa con acceso directo y editor)
 
 param(
-    [switch]$Update
+    [switch]$Update,
+    [switch]$Todo
 )
+
+if ($Todo) {
+    & "$PSScriptRoot\instalar.ps1"
+    exit $LASTEXITCODE
+}
 
 $ErrorActionPreference = "Stop"
 $ProjectPath = "C:\dev\BaseDPC"
@@ -27,9 +34,16 @@ function Install-Project {
     }
 
     if (Test-Path $ProjectPath) {
-        Write-Host "  La carpeta $ProjectPath ya existe." -ForegroundColor Yellow
-        Write-Host "  Usa: .\setup.ps1 -Update  para actualizar." -ForegroundColor Yellow
-        Set-Location $ProjectPath
+        if (Test-Path "$ProjectPath\.git") {
+            Set-Location $ProjectPath
+            git fetch origin
+            git pull origin main
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            Write-Host "  Repositorio actualizado." -ForegroundColor Green
+            return
+        }
+        Write-Host "  La carpeta $ProjectPath ya existe (no es git)." -ForegroundColor Yellow
+        Write-Host "  Usa: .\instalar.ps1  para instalación completa." -ForegroundColor Yellow
         return
     }
 
@@ -74,11 +88,7 @@ if ($Update) {
 Write-Host ""
 Write-Host "Base DPC listo en: $ProjectPath" -ForegroundColor Green
 Write-Host ""
-Write-Host "Para abrir la app:" -ForegroundColor White
-Write-Host "  Doble clic en index.html" -ForegroundColor Gray
-Write-Host ""
-Write-Host "Para servidor de desarrollo:" -ForegroundColor White
-Write-Host "  .\serve.ps1" -ForegroundColor Gray
-Write-Host "  http://localhost:3000" -ForegroundColor Gray
-Write-Host ""
-Write-Host "En VS Code / Cursor: F5 o Run > Base DPC (navegador)" -ForegroundColor White
+Write-Host "Instalación completa:  .\instalar.ps1" -ForegroundColor White
+Write-Host "Abrir app:             doble clic en index.html" -ForegroundColor Gray
+Write-Host "Servidor desarrollo:   .\serve.ps1" -ForegroundColor Gray
+Write-Host "En Cursor/VS Code:     F5" -ForegroundColor Gray
