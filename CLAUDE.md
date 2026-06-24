@@ -5,9 +5,13 @@ Base de conocimiento para la Dirección de Procesos de Control (DPC) de la Contr
 
 ## Ruta del proyecto
 ```
-C:\Users\juoso\OneDrive\Escritorio\BaseConocimiento\
-└── index.html   ← único archivo de la app
+C:\dev\BaseDPC\
+├── index.html   ← único archivo de la app
+├── README.md
+└── setup.ps1    ← instalación/actualización en Windows
 ```
+
+Repositorio: https://github.com/juosoriol/base-dpc
 
 ## Stack
 - **HTML/CSS/JS puro** — sin frameworks, sin build step, sin npm
@@ -65,5 +69,11 @@ C:\Users\juoso\OneDrive\Escritorio\BaseConocimiento\
 ## Cómo probar cambios
 Abrir `index.html` directamente en el navegador — no requiere servidor.
 
-## Pendientes conocidos
-- Git no inicializado aún (pendiente de `git init` + primer commit)
+## Instalación local (Windows)
+```powershell
+git clone https://github.com/juosoriol/base-dpc.git C:\dev\BaseDPC
+cd C:\dev\BaseDPC
+.\setup.ps1
+```
+
+Para actualizar: `.\setup.ps1 -Update` o `git pull origin main`
