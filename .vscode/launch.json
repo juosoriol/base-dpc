@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Base DPC (navegador)",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3000",
+      "preLaunchTask": "Base DPC: servidor HTTP",
+      "webRoot": "${workspaceFolder}"
+    }
+  ]
+}

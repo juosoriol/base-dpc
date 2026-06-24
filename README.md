@@ -50,10 +50,16 @@ Doble clic en `index.html` o arrástralo al navegador.
 
 ```powershell
 cd C:\dev\BaseDPC
-python -m http.server 3000
+.\serve.ps1
 ```
 
 Luego abre [http://localhost:3000](http://localhost:3000).
+
+### VS Code / Cursor
+
+1. Abre la carpeta `C:\dev\BaseDPC` como workspace
+2. Pulsa **F5** o ejecuta **Run > Base DPC (navegador)**
+3. Se inicia el servidor y se abre el navegador automáticamente
 
 ## Actualizar el proyecto
 
@@ -66,10 +72,16 @@ git pull origin main
 
 ```
 C:\dev\BaseDPC\
-├── index.html      ← aplicación completa (HTML + CSS + JS)
-├── CLAUDE.md       ← documentación para asistentes de IA
-├── README.md       ← este archivo
-└── setup.ps1       ← script de instalación/actualización
+├── index.html          ← aplicación completa (HTML + CSS + JS)
+├── CLAUDE.md           ← documentación para asistentes de IA
+├── README.md           ← este archivo
+├── setup.ps1           ← instalación/actualización
+├── serve.ps1           ← servidor de desarrollo (Windows)
+├── serve.sh            ← servidor de desarrollo (Linux/Mac)
+├── .gitignore
+└── .vscode/            ← configuración de depuración en VS Code/Cursor
+    ├── launch.json
+    └── tasks.json
 ```
 
 ## Funcionalidades

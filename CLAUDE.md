@@ -6,9 +6,11 @@ Base de conocimiento para la Dirección de Procesos de Control (DPC) de la Contr
 ## Ruta del proyecto
 ```
 C:\dev\BaseDPC\
-├── index.html   ← único archivo de la app
+├── index.html      ← único archivo de la app
 ├── README.md
-└── setup.ps1    ← instalación/actualización en Windows
+├── setup.ps1       ← instalación/actualización en Windows
+├── serve.ps1       ← servidor local (puerto 3000)
+└── .vscode/        ← F5 para abrir con servidor HTTP
 ```
 
 Repositorio: https://github.com/juosoriol/base-dpc

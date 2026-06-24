@@ -78,5 +78,7 @@ Write-Host "Para abrir la app:" -ForegroundColor White
 Write-Host "  Doble clic en index.html" -ForegroundColor Gray
 Write-Host ""
 Write-Host "Para servidor de desarrollo:" -ForegroundColor White
-Write-Host "  python -m http.server 3000" -ForegroundColor Gray
+Write-Host "  .\serve.ps1" -ForegroundColor Gray
 Write-Host "  http://localhost:3000" -ForegroundColor Gray
+Write-Host ""
+Write-Host "En VS Code / Cursor: F5 o Run > Base DPC (navegador)" -ForegroundColor White
