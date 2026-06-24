@@ -4,7 +4,16 @@
     {
       "label": "Base DPC: servidor HTTP",
       "type": "shell",
-      "command": "python3 -m http.server 3000",
+      "command": "python -m http.server 3000",
+      "windows": {
+        "command": "python -m http.server 3000"
+      },
+      "linux": {
+        "command": "python3 -m http.server 3000"
+      },
+      "osx": {
+        "command": "python3 -m http.server 3000"
+      },
       "isBackground": true,
       "problemMatcher": [],
       "presentation": {

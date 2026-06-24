@@ -1,0 +1,10 @@
+{
+  "files.associations": {
+    "index.html": "html"
+  },
+  "files.exclude": {
+    "**/.git": true
+  },
+  "editor.formatOnSave": false,
+  "html.customData": []
+}
