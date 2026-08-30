@@ -14,3 +14,4 @@ desktop.ini
 
 # Local overrides (no commitear datos de prueba)
 *.local.json
+.serve.pid

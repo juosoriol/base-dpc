@@ -8,8 +8,10 @@ Base de conocimiento para la Dirección de Procesos de Control (DPC) de la Contr
 C:\dev\BaseDPC\
 ├── index.html              ← único archivo de la app
 ├── BaseDPC.code-workspace  ← workspace para Cursor/VS Code
+├── actualizar.ps1          ← actualizar + abrir app (uso diario)
+├── actualizar.bat          ← doble clic para actualizar
 ├── instalar.ps1            ← instalación completa (un comando)
-├── setup.ps1               ← clonar/actualizar
+├── setup.ps1               ← clonar/actualizar (solo git)
 ├── serve.ps1               ← servidor local (puerto 3000)
 └── .vscode/                ← F5 para abrir con servidor HTTP
 ```

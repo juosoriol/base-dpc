@@ -314,6 +314,7 @@ main{overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px}
     <button onclick="openTagManager()">&#9668;&#9002; Gestionar etiquetas</button>
     <button onclick="importData()">&#8679; Importar JSON</button>
     <button onclick="exportData()">&#8681; Exportar JSON</button>
+    <div id="appVersion" style="font-size:9px;color:rgba(255,255,255,.35);padding:6px 4px 0;text-align:center"></div>
   </div>
 </aside>
 
@@ -615,6 +616,7 @@ const TAG_STORE     = 'kb_tags_v3';
 const DEFAULTS_STORE= 'kb_tag_defaults_v1';
 const CARGOS_STORE  = 'kb_cargos_v1';
 const THEME_KEY     = 'kb_theme';
+const APP_VERSION   = '2026.08.30';
 
 // ══════════════════════════════════════════════════════════════
 // STATE
@@ -704,7 +706,11 @@ function toggleTheme() {
 // ══════════════════════════════════════════════════════════════
 // RENDER
 // ══════════════════════════════════════════════════════════════
-function renderAll() { renderSidebar(); renderStats(); renderTagFilters(); renderEntries(); }
+function renderAll() {
+  const ver=document.getElementById('appVersion');
+  if(ver)ver.textContent='v '+APP_VERSION;
+  renderSidebar(); renderStats(); renderTagFilters(); renderEntries();
+}
 
 function renderSidebar() {
   const total = state.entries.length;
