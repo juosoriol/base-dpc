@@ -88,7 +88,7 @@ if ($Update) {
 Write-Host ""
 Write-Host "Base DPC listo en: $ProjectPath" -ForegroundColor Green
 Write-Host ""
+Write-Host "Actualizar y abrir:  .\actualizar.ps1" -ForegroundColor White
 Write-Host "Instalación completa:  .\instalar.ps1" -ForegroundColor White
-Write-Host "Abrir app:             doble clic en index.html" -ForegroundColor Gray
 Write-Host "Servidor desarrollo:   .\serve.ps1" -ForegroundColor Gray
 Write-Host "En Cursor/VS Code:     F5" -ForegroundColor Gray
